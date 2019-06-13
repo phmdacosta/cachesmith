@@ -1,4 +1,4 @@
-package com.pedrocosta.cachesmith.library.models
+package com.pedrocosta.cachesmith.example.models
 
 import com.pedrocosta.cachesmith.library.annotations.Field
 import com.pedrocosta.cachesmith.library.annotations.Table

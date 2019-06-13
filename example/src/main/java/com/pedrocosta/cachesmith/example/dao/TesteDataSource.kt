@@ -1,4 +1,4 @@
-package com.pedrocosta.cachesmith.library.dao
+package com.pedrocosta.cachesmith.example.dao
 
 import com.pedrocosta.cachesmith.library.annotations.Entity
 

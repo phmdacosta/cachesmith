@@ -1,12 +1,15 @@
 package com.pedrocosta.cachesmith.library.impl
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.pedrocosta.cachesmith.library.PreferencesManager
 import com.pedrocosta.cachesmith.library.annotations.*
 import com.pedrocosta.cachesmith.library.config.DataTypes
+import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.Exception
 
 class CacheSmithHelperImpl private constructor(val context: Context, val name: String, val version: Int):
@@ -15,6 +18,7 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
     companion object {
         private val DEFAULT_VERSION = 1
         private val VERSION_CACHED_KEY = "sp-database-version"
+        private val SHARED_PREF_SUFIX_FIELDS = "_fields"
     }
 
     protected var entity: Class<*>? = null
@@ -25,6 +29,9 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
         val sql = ""
 
         if (entity != null && entity!!.annotations != null) {
+            val fieldNames = ArrayList<String>()
+            var jsonFields = JSONObject()
+
             sql.plus("CREATE TABLE ")
             val tableAnnot = entity!!.annotations.find { it is Table } as Table
             sql.plus(tableAnnot.name)
@@ -57,7 +64,14 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
                 if (field.annotations != null) {
                     field.annotations.forEach {annotation ->
                         when(annotation) {
-                            is Field -> sql.plus(annotation.name)
+                            is Field -> {
+                                var columnName = field.name
+                                if (!annotation.name.isBlank()) {
+                                    columnName = annotation.name
+                                }
+                                sql.plus(columnName)
+                                jsonFields.put(field.name, columnName)
+                            }
                             is PrimaryKey -> sql.plus(" PRIMARY KEY ")
                             is Unique -> sql.plus(" UNIQUE ")
                             is AutoIncrement -> sql.plus(" AUTO_INCREMENT ")
@@ -73,6 +87,9 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
             sql.plus(" ) ")
 
             Log.i("TESTE", sql)
+
+            PreferencesManager.putString(context,
+                    entity!!.name.plus(SHARED_PREF_SUFIX_FIELDS), jsonFields.toString())
         }
 
         db!!.execSQL(sql)
@@ -97,6 +114,7 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
 
             if (sPref.contains(VERSION_CACHED_KEY)) {
                 val currentVersion = sPref.getInt(VERSION_CACHED_KEY, DEFAULT_VERSION)
+
                 if (newVersion <= currentVersion) {
                     newVersion = currentVersion
                 }

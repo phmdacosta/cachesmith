@@ -29,7 +29,7 @@ annotation class Table(val name: String)
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
-annotation class Field(val name: String)
+annotation class Field(val name: String = "")
 
 /**
  * Defines if field is a primary key of the entity.
