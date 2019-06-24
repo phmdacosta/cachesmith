@@ -13,7 +13,7 @@ import org.json.JSONObject
 import java.lang.Exception
 
 class CacheSmithHelperImpl private constructor(val context: Context, val name: String, val version: Int):
-        SQLiteOpenHelper(context, name, null, version) {
+        SQLiteOpenHelper(context, name, null, version), CacheSmithHelper() {
 
     companion object {
         private val DEFAULT_VERSION = 1
@@ -34,8 +34,14 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
 
             sql.plus("CREATE TABLE ")
             val tableAnnot = entity!!.annotations.find { it is Table } as Table
-            sql.plus(tableAnnot.name)
+            if (!tableAnnot.name.isBlank()) {
+            	sql.plus(tableAnnot.name)
+            } else {
+            	sql.plus(entity!!.name)
+            }
             sql.plus(" ( ")
+            
+            var fieldsToJson = ArrayList<string>()
 
             var i = 0
             entity!!.declaredFields.forEach { field ->
@@ -65,12 +71,12 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
                     field.annotations.forEach {annotation ->
                         when(annotation) {
                             is Field -> {
+                            	fieldsToJson.add(field.name)
                                 var columnName = field.name
                                 if (!annotation.name.isBlank()) {
                                     columnName = annotation.name
                                 }
                                 sql.plus(columnName)
-                                jsonFields.put(field.name, columnName)
                             }
                             is PrimaryKey -> sql.plus(" PRIMARY KEY ")
                             is Unique -> sql.plus(" UNIQUE ")
@@ -87,9 +93,49 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
             sql.plus(" ) ")
 
             Log.i("TESTE", sql)
+            
+            jsonFields.put("name", entity!!.name)
+            jsonFields.put("columns", fieldsToJson)
 
             PreferencesManager.putString(context,
-                    entity!!.name.plus(SHARED_PREF_SUFIX_FIELDS), jsonFields.toString())
+                    "cacheSmithDbTablesKey", jsonFields.toString())
+            
+            //TODO
+            /*
+            var dbTable = DBTable(entity!!.name)
+            dbTable.columns = fieldsToJson
+            PreferencesManager.addDBTable(dbTable)
+            */
+            
+            /*
+            JSON:
+            [
+            	{
+            		"name": "Entidade01",
+            		"columns": [
+            						"coluna1",
+            						"coluna2",
+            						"coluna3",
+            						"coluna4"
+            				   ]
+            	},
+            	{
+            		"name": "Entidade02",
+            		"columns": [
+            						"coluna1",
+            						"coluna2"
+            				   ]
+            	},
+            	{
+            		"name": "Entidade03",
+            		"columns": [
+            						"coluna1",
+            						"coluna2",
+            						"coluna3"
+            				   ]
+            	},
+            ]
+            */
         }
 
         db!!.execSQL(sql)
@@ -97,6 +143,12 @@ class CacheSmithHelperImpl private constructor(val context: Context, val name: S
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         Log.i("TESTE", "CacheSmithHelperImpl.onUpgrade")
+        
+        
+        
+        sql.plus("ALTER TABLE ")
+        
+        
     }
 
     class Builder(private val context: Context, private val dbName: String) {
