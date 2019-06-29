@@ -13,7 +13,7 @@
         <uses-library android:name="android.test.runner"/>
 
         <activity
-            android:name="com.pedrocosta.cachesmith.example.MainActivity"
+            android:name="com.cachesmith.example.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
