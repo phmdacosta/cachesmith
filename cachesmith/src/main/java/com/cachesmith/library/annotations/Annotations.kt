@@ -7,7 +7,6 @@ import com.cachesmith.library.util.RelationType
 
 /**
  * Defines the entity model of a data source.
- *
  * @property value class name of model for reflection. Ex: <package-name>.Model
  */
 @Retention(AnnotationRetention.RUNTIME)
@@ -16,7 +15,6 @@ annotation class Entity(val value: String)
 
 /**
  * Defines the name of a table in data base.
- *
  * @property name the table name
  */
 @Retention(AnnotationRetention.RUNTIME)
@@ -25,7 +23,6 @@ annotation class Table(val name: String = "")
 
 /**
  * Defines the name of a field of a table in data base.
- *
  * @property name the field name
  */
 @Retention(AnnotationRetention.RUNTIME)
@@ -69,10 +66,9 @@ annotation class NotNullable
 
 /**
  * Defines the relationship between entities.
- *
- * To defines the type of relationship, use the following elements: [ONE_TO_ONE], [ONE_TO_MANY], [MANY_TO_MANY]
- *
- * @property type the type of relationship.
+ * To defines the type of relationship, use the following elements: [ONE_TO_ONE], [ONE_TO_MANY], [MANY_TO_ONE], [MANY_TO_MANY].
+ * @param type the type of relationship.
+ * @param targetTable the name of the target table
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
@@ -87,7 +83,6 @@ annotation class Relationship(val type: RelationType,
 object AnnotationValidator {
 	/**
 	 * Check if annotations from model are in CacheSmith package
-	 *
 	 * @param annotation <b>Annotation</b>
 	 * @return <b>Boolean</b>
 	 */

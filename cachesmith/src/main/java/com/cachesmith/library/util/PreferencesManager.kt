@@ -1,4 +1,4 @@
-package com.cachesmith.library
+package com.cachesmith.library.util
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -7,7 +7,6 @@ import com.cachesmith.library.config.Config
 object PreferencesManager {
 	
     private var mPref: SharedPreferences? = null
-    private var editor: SharedPreferences.Editor? = null
 
     fun open(context: Context): SharedPreferences {
 		mPref ?: synchronized(this) {
@@ -19,34 +18,26 @@ object PreferencesManager {
 		}
         return mPref!!
     }
-    
-    fun saveTableColumns(context: Context, tableName: String, values: List<String>) {
-        synchronized(this) {			
-            open(context).edit().also { sPref -> 
-            	val strBuilder = StringBuilder()
-            	values.forEach { s ->
-            		strBuilder.append(s)
-            		strBuilder.append(";")
-            	}
-            	sPref.putString(tableName.plus("_key"), strBuilder.toString())
-            	sPref.apply()
+
+    fun saveTableJson(context: Context, key: String, json: JSONTable) {
+        synchronized(this) {
+            open(context).edit().also { sPref ->
+                sPref.putString(key, json.toString())
+                sPref.apply()
             }
         }
     }
-    
-    fun getTableColumns(context: Context, tableName: String): List<String> {
-        var value: MutableList<String>? = null
-        value ?: synchronized(this) {
-            value ?: open(context).also { sPref ->
-				value = mutableListOf<String>()
-            	val s = sPref.getString(tableName.plus("_key"), "")
-            	s.split(";").forEach {
-            		value!!.add(it)
-            	}
+
+    fun getTableJson(context: Context, key: String): JSONTable {
+        var jsonTable: JSONTable
+        synchronized(this) {
+            open(context).also { sPref ->
+                val s = sPref.getString(key, "")
+                jsonTable = JSONTable(s ?: "")
             }
         }
-        return value!!.toList()
-	}
+        return jsonTable
+    }
 
     fun putString(context: Context, key: String, value: String) {
         synchronized(this) {

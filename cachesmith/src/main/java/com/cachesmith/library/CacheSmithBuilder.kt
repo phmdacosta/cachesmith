@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.cachesmith.library.annotations.Entity
 import com.cachesmith.library.config.BuildInfo
+import com.cachesmith.library.util.PreferencesManager
 
 class CacheSmithBuilder(val context: Context) : CacheSmith {
 
