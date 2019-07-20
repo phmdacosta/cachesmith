@@ -8,14 +8,16 @@ object BuildInfo {
 	
 	private var info: PackageInfo? = null
 	
+	@Throws(NameNotFoundException::class)
 	fun initInfo(context: Context) {
 		try {
 		    info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
 		} catch (e: NameNotFoundException) {
-		    e.printStackTrace();
+			throw NameNotFoundException("Could not retrieve info from App in package ".plus(context.getPackageName()))
 		}
 	}
 	
+	@Throws(NameNotFoundException::class)
 	fun getVersionCode(context: Context): Int {
 		if (info == null) {
 			initInfo(context)

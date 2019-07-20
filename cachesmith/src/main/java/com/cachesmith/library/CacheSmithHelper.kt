@@ -7,7 +7,7 @@ object CacheSmithHelper {
 
     @Volatile private var instance: SQLiteOpenHelper? = null
 
-    fun create(context: Context, entity: Class<*>?): SQLiteOpenHelper {
+    fun create(context: Context, entity: Class<*>): SQLiteOpenHelper {
    		instance ?: synchronized(this) {
         	instance ?: CacheSmithOpenHelper.Builder.buid(context, entity).also { instance = it }
         }

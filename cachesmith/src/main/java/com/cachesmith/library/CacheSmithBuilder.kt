@@ -26,7 +26,7 @@ class CacheSmithBuilder(val context: Context) : CacheSmith {
                 }
             }
         }
-        val helper = CacheSmithHelper.create(context, model)
+        val helper = CacheSmithHelper.create(context, model!!)
         return dataSource.getConstructor(SQLiteOpenHelper::class.java).newInstance(helper) as T
     }
     

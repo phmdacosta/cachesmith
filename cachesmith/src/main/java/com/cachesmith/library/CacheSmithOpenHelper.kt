@@ -5,151 +5,168 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.cachesmith.library.annotations.*
-import com.cachesmith.library.config.DataTypes
-import org.json.JSONArray
-import org.json.JSONObject
+import com.cachesmith.library.util.DataType
 import java.lang.Exception
 import com.cachesmith.library.config.BuildInfo
 import com.cachesmith.library.exceptions.NoVersionException
+import com.cachesmith.library.util.RelationType
+import java.lang.reflect.Field
+import com.cachesmith.library.util.JSONColumn
+import com.cachesmith.library.util.JSONAnnotation
+import com.cachesmith.library.util.JSONTable
+import com.cachesmith.library.util.CreateQueryBuilder
+import com.cachesmith.library.util.ColumnObject
+import com.cachesmith.library.util.ForeignKeyObject
 
-class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, private val entity: Class<*>?):
+class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, private val entity: Class<*>):
         SQLiteOpenHelper(context, name, null, version) {
 
     override fun onCreate(db: SQLiteDatabase?) {
         Log.i("TESTE", "CacheSmithOpenHelper.onCreate")
 
-        if (entity != null && entity.annotations != null) {
-            val sql = ""
+        if (entity.annotations != null) {
 
-            val fieldsJsonArray = JSONArray()
-            var jsonFields = JSONObject()
-
-            sql.plus("CREATE TABLE ")
+            var jsonTable = JSONTable()
+			var queryBuilder = CreateQueryBuilder()
 			
 			var tableName = entity.name
             val tableAnnot = entity.annotations.find { it is Table } as Table
             if (!tableAnnot.name.isBlank()) {
             	tableName = tableAnnot.name
             }
-			jsonFields.put("name", tableName)
-			sql.plus(tableName)
-            sql.plus(" ( ")
-            
-            var fieldsToSave = mutableListOf<String>()
-
-            var i = 0
+			jsonTable.name = tableName
+			queryBuilder.tableName = tableName
+			
             entity.declaredFields.forEach { field ->
+				var columnObj = ColumnObject()
+				var jsonColumn = JSONColumn()
+				
                 try {
                     entity.getMethod("get".plus(field.name.capitalize()))
                 } catch (e: Exception) {
                     return@forEach
                 }
-
-                if (i > 0) {
-                    sql.plus(", ")
-                }
 				
-				var columntype = ""
-
-                when {
-                    field.type.name.contains("int", true) -> columntype = DataTypes.INTEGER
-                    field.type.name.contains("long", true) -> columntype = DataTypes.INTEGER
-                    field.type.name.contains("double", true) -> columntype = DataTypes.REAL
-                    field.type.name.contains("float", true) -> columntype = DataTypes.REAL
-                    field.type.name.contains("string", true) -> columntype = DataTypes.TEXT
-                    field.type.name.contains("char", true) -> columntype = DataTypes.TEXT
-                    field.type.name.contains("byte", true) -> columntype = DataTypes.BLOB
-                }
-				
-				val annotationsField = mutableListOf<String>()
+				columnObj.typeClass = field.type
 
                 if (field.annotations != null) {
-					var jsonField = JSONObject()
+					
+					var jsonAnnotation = JSONAnnotation()
+					
+					columnObj.name = getColumnNameFromField(field)
+					
                     field.annotations.forEach {annotation ->
 						
-						annotationsField.add(annotation.annotationClass.simpleName!!)
+						jsonAnnotation.name = annotation.annotationClass.simpleName!!
 						
                         when(annotation) {
-                            is Field -> {
-								i++
+                            is Column -> {
 								
-                            	fieldsToSave.add(field.name)
-                                var columnName = field.name
-                                if (!annotation.name.isBlank()) {
-                                    columnName = annotation.name
-                                }
-                                sql.plus(columnName)
-								sql.plus(" ")
-								sql.plus(columntype)
+								if (annotation.type != DataType.NONE) {
+									columnObj.typeName = annotation.type.value
+								}
 								
-								jsonField.put("name", columnName)
-								jsonField.put("type", field.type.name)
+								jsonColumn.name = columnObj.name
+								jsonColumn.type = field.type.name
                             }
-                            is PrimaryKey -> sql.plus(" PRIMARY KEY ")
-                            is Unique -> sql.plus(" UNIQUE ")
-                            is AutoIncrement -> sql.plus(" AUTO_INCREMENT ")
-                            is ForeignKey -> sql.plus(" FOREIGN KEY ")
-                            is NotNullable -> sql.plus(" NOT NULL ")
+							is Relationship -> {
+								if (!annotation.query.isBlank()) {
+									columnObj.foreignKeyQuery = annotation.query
+								} else {
+									if (annotation.type == RelationType.ONE_TO_ONE
+										|| annotation.type == RelationType.MANY_TO_ONE) {
+										
+										var foreignKey = getForeignKeyObject(annotation, field.type)										
+										columnObj.foreignKey = foreignKey
+									}
+									else if (annotation.type == RelationType.MANY_TO_MANY) {
+										createRelationalTable(db, field.type)
+									}
+								}
+							}
+                            is PrimaryKey -> columnObj.isPrimaryKey = true
+                            is Unique -> columnObj.isUnique = true
+                            is AutoIncrement -> columnObj.isAutoIncrement = true
+                            is NotNullable -> columnObj.isNotNull = true
                         }
+						
+						jsonColumn.addAnnotationJson(jsonAnnotation)
                     }
 					
-					if (jsonField.getString("name") != null) {
-						jsonField.put("annotations", annotationsField.toList())
-						fieldsJsonArray.put(jsonField)
-					}
+
                 }
+				
+				if (!"".equals(jsonColumn.name)) {
+					jsonTable.addColumnJson(jsonColumn)
+				}
+				
+				queryBuilder.addColumn(columnObj)
             }
 			
-			jsonFields.put("quantity", i)
-			jsonFields.put("columns", fieldsJsonArray)
-
-            sql.plus(" ) ")
+			var sql = queryBuilder.build()
 
             Log.i("TESTE", sql)
-            
-//            jsonFields.put("name", entity!!.name)
-//            jsonFields.put("columns", fieldsToSave)
 			
-			PreferencesManager.putString(context, entity.name, jsonFields.toString())
+			PreferencesManager.putString(context, entity.name, jsonTable.toString())
 
 //            PreferencesManager.putString(context,
 //                    "cacheSmithDbTablesKey", jsonFields.toString())
             
             //TODO
             /*
-            var dbTable = DBTable(entity!!.name)
+            var dbTable = DBTable(entity.name)
             dbTable.columns = fieldsToJson
             PreferencesManager.addDBTable(dbTable)
             */
             
             /*
+ 			key = com.projeto.models.Pessoa_Table
             JSON:
-            [
-            	{
-            		"name": "Entidade01",
-            		"columns": [
-            						"coluna1",
-            						"coluna2",
-            						"coluna3",
-            						"coluna4"
-            				   ]
-            	},
-            	{
-            		"name": "Entidade02",
-            		"columns": [
-            						"coluna1",
-            						"coluna2"
-            				   ]
-            	},
-            	{
-            		"name": "Entidade03",
-            		"columns": [
-            						"coluna1",
-            						"coluna2",
-            						"coluna3"
-            				   ]
-            	},
-            ]
+			{
+				"name": "PESSOA",
+ 				"quantity": 3,
+ 				"columns": [
+ 					{
+						"name": "ID",
+ 						"field": "id",
+ 						"type": "long",
+ 						"annotations": [
+ 							{
+								"annotation": "Field"
+							},
+ 							{
+								"annotation": "PrimaryKey"
+							},
+  							{
+								"annotation": "Unique"
+							}
+ 						]
+					},
+ 					{
+						"name": "NOME"
+  						"field": "nome",
+ 						"type": "String"
+ 						"annotations": [
+ 							{
+								"annotation": "Field"
+							},
+   							{
+								"annotation": "Unique"
+							}
+ 						]
+					},
+ 					{
+						"name": "IDADE"
+  						"field": "idade",
+ 						"type": "int"
+ 						"annotations": [
+ 							{
+								"annotation": "Field"
+							}
+ 						]
+					},
+ 				]
+			}
             */
 
             db!!.execSQL(sql)
@@ -159,188 +176,125 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         Log.i("TESTE", "CacheSmithOpenHelper.onUpgrade")
 		
-		var update = true
-        
-		var jsonTable: JSONObject? = null
-		
-		if (!PreferencesManager.getManualVersionCheck(context)) {
-			jsonTable = JSONObject(PreferencesManager.getString(context, entity!!.name))
-			if (!jsonTable.toString().isBlank()) {
-				update = checkEntityChanged(jsonTable)
-			}
-		}
-		
-		if (update) {
-			
-			val sql = ""
-			
-			sql.plus("ALTER TABLE ")
-		
-			val tableAnnot = entity!!.annotations.find { it is Table } as Table
-            if (!tableAnnot.name.isBlank()) {
-            	sql.plus(tableAnnot.name)
-            } else {
-            	sql.plus(entity!!.name)
-            }
-            sql.plus(" ( ")
-            
-            var fieldsToSave = mutableListOf<String>()
-
-            var i = 0
-            entity!!.declaredFields.forEach { field ->
-                try {
-                    entity!!.getMethod("get".plus(field.name.capitalize()))
-                } catch (e: Exception) {
-                    return
-                }
-
-                if (i > 0) {
-                    sql.plus(", ")
-                }
-				
-				var columntype = ""
-
-                when {
-                    field.type.name.contains("int", true) -> columntype = DataTypes.INTEGER
-                    field.type.name.contains("long", true) -> columntype = DataTypes.INTEGER
-                    field.type.name.contains("double", true) -> columntype = DataTypes.REAL
-                    field.type.name.contains("float", true) -> columntype = DataTypes.REAL
-                    field.type.name.contains("string", true) -> columntype = DataTypes.TEXT
-                    field.type.name.contains("char", true) -> columntype = DataTypes.TEXT
-                    field.type.name.contains("byte", true) -> columntype = DataTypes.BLOB
-                }
-				
-				val annotationsField = mutableListOf<String>()
-
-                if (field.annotations != null) {
-					var jsonField = JSONObject()
-                    field.annotations.forEach {annotation ->
-						
-						annotationsField.add(annotation.annotationClass.simpleName!!)
-						
-                        when(annotation) {
-                            is Field -> {
-								i++
-								
-								jsonField.put("name", field.name)
-								jsonField.put("type", field.type.name)
-								
-                            	fieldsToSave.add(field.name)
-                                var columnName = field.name
-                                if (!annotation.name.isBlank()) {
-                                    columnName = annotation.name
-                                }
-                                sql.plus(columnName)
-								sql.plus(" ")
-								sql.plus(columntype)
-                            }
-                            is PrimaryKey -> sql.plus(" PRIMARY KEY ")
-                            is Unique -> sql.plus(" UNIQUE ")
-                            is AutoIncrement -> sql.plus(" AUTO_INCREMENT ")
-                            is ForeignKey -> sql.plus(" FOREIGN KEY ")
-                            is NotNullable -> sql.plus(" NOT NULL ")
-                        }
-                    }
-					
-					if (jsonField.getString("name") != null) {
-						jsonField.put("annotations", annotationsField.toList())
-//						fieldsJsonArray.put(jsonField)
-					}
-                }
-            }
-		}
-    }
+		/*
+ 		BEGIN TRANSACTION;
+		CREATE TEMPORARY TABLE t1_backup(a,b);
+		INSERT INTO t1_backup SELECT a,b FROM t1;
+		DROP TABLE t1;
+		CREATE TABLE t1(a,b);
+		INSERT INTO t1 SELECT a,b FROM t1_backup;
+		DROP TABLE t1_backup;
+		COMMIT;
+		 */
+	}
 	
-	fun checkEntityChanged(jsonTable: JSONObject): Boolean {
+	private fun getForeignKeyObject(annotation: Relationship, target: Class<*>): ForeignKeyObject {
+		var foreignKey = ForeignKeyObject(annotation.targetTable, annotation.targetColumn)
+		foreignKey.onDeleteAction = annotation.onDelete
+		foreignKey.onUpdateAction = annotation.onUpdate
 			
-        val tableAnnot = entity!!.annotations.find { it is Table } as Table
-        if (tableAnnot == null
-			|| (!tableAnnot.name.isBlank() && !tableAnnot.equals(jsonTable.getString("name")))
-			|| (!entity!!.name.equals(jsonTable.getString("name")))) {
-			return true
-        }
+		if (!foreignKey.referenceTable.isBlank()) {
+			foreignKey.referenceTable = getTableNameFromClass(target)
+		}
 		
-		val jsonColumns = jsonTable.getJSONArray("columns")
-		
-		for (j in 0..jsonColumns.length()) {
-			val jsonColumn = jsonColumns.get(j) as JSONObject
-			val jsonAnnotations = jsonColumn.get("annotations") as List<String>
-			
-			entity!!.declaredFields.forEach { field ->
-	            try {
-	                entity!!.getMethod("get".plus(field.name.capitalize()))
-	            } catch (e: Exception) {
-	               return@forEach
-	            }
-				
-				if (!field!!.name.equals(jsonColumn.getString("name"))) {
-					
+		if (!foreignKey.referenceColumn.isBlank()) {
+			getFieldsFromClass(target).forEach { field ->
+				field.annotations.forEach { annot ->
+					 when(annot) {
+						 is PrimaryKey -> {
+							 foreignKey.referenceColumn = getColumnNameFromField(field)
+						 }
+					 }
 				}
-				
-				if (field.annotations != null) {
-	                field.annotations.forEach {annotation ->
-						if (AnnotationValidator.isValid(annotation)) {
-							if (!jsonAnnotations.contains(annotation.annotationClass.simpleName)) {
-								return true
-							}
-						}
+			}
+		}
+		return foreignKey
+	}
+
+	private fun createRelationalTable(db: SQLiteDatabase?, target: Class<*>) {
+		var queryBuilder = CreateQueryBuilder()
+		
+		queryBuilder.tableName = getRelationalTableName(entity.name, target.name)
+		
+		var entityColumnObj = getColumnsForRelationalTable(entity)
+		queryBuilder.addColumn(entityColumnObj)
+		
+		var targetColumnObj = getColumnsForRelationalTable(target)
+		queryBuilder.addColumn(targetColumnObj)
+		
+		db!!.execSQL(queryBuilder.build())
+	}
+	
+	private fun getRelationalTableName(firstTableName: String, secondTableName: String): String {
+		val prefxTable = "rel_"
+		val firstName = firstTableName.substring(0, 4)
+		val secondName = secondTableName.substring(0, 4)
+		return prefxTable.plus(firstName).plus("_").plus(secondName)
+	}
+	
+	private fun getColumnsForRelationalTable(parent: Class<*>): ColumnObject {
+		var columnObj = ColumnObject()
+		
+		parent.declaredFields.forEach { field ->
+			field.annotations.forEach {annotation ->
+				when {
+					annotation is PrimaryKey -> {
+						columnObj.name = field.name
+						columnObj.typeClass = field.type
+					}
+					annotation is Relationship -> {
+						var foreignKeyObj = getForeignKeyObject(annotation, field.type)
+						columnObj.foreignKey = foreignKeyObj
 					}
 				}
 			}
 		}
 		
+		return columnObj
+	}
 
-        var i = 0
-		listOf(1, 2, 3, 4, 5).forEach {
-	        if (it == 3) return@forEach // non-local return directly to the caller of foo()
-	        print(it)
-	    }
-        entity!!.declaredFields.forEach { field ->
-            try {
-                entity!!.getMethod("get".plus(field.name.capitalize()))
-            } catch (e: Exception) {
-               return@forEach
-            }
+	private fun getFieldsFromClass(clazz: Class<*>): List<Field> {
+		val fields = mutableListOf<Field>()
+		clazz.declaredFields.forEach { field ->
+			try {
+				clazz.getMethod("get".plus(field.name.capitalize()))
+			} catch (e: Exception) {
+				return@forEach
+			}
+			fields.add(field)
+		}
+		return fields.toList()
+	}
+
+	private fun getTableNameFromClass(clazz: Class<*>): String {
+		var tableName = clazz.name
+        val tableAnnot = clazz.annotations.find { it is Table } as Table
+        if (!tableAnnot.name.isBlank()) {
+        	tableName = tableAnnot.name
+        }
+		return tableName;
+	}
+
+	private fun getColumnNameFromField(field: Field): String {
+		field.annotations.forEach { columnAnnot ->
+			when(columnAnnot) {
+				is Column -> {
+					if (!columnAnnot.name.isBlank()) {
+						return columnAnnot.name
+					}
+					return field.name
+				} 
+			}
+		}
+		return ""
+	}
+	
+	fun checkEntityChanged(jsonTable: JSONTable): Boolean {
 			
-			if (field.type.name.equals(jsonTable.get("name"))) {
-
-            }
-			
-			var columntype = ""
-
-            when {
-                field.type.name.contains("int", true) -> columntype = DataTypes.INTEGER
-                field.type.name.contains("long", true) -> columntype = DataTypes.INTEGER
-                field.type.name.contains("double", true) -> columntype = DataTypes.REAL
-                field.type.name.contains("float", true) -> columntype = DataTypes.REAL
-                field.type.name.contains("string", true) -> columntype = DataTypes.TEXT
-                field.type.name.contains("char", true) -> columntype = DataTypes.TEXT
-                field.type.name.contains("byte", true) -> columntype = DataTypes.BLOB
-            }
-			
-			val annotationsField = mutableListOf<String>()
-
-            if (field.annotations != null) {
-				var jsonField = JSONObject()
-                field.annotations.forEach {annotation ->
-					
-					annotationsField.add(annotation.annotationClass.simpleName!!)
-					
-                    when(annotation) {
-                        is Field -> {
-                        }
-                        is PrimaryKey -> {}
-                        is Unique -> {}
-                        is AutoIncrement -> {}
-                        is ForeignKey -> {}
-                        is NotNullable -> {}
-                    }
-                }
-				
-				if (jsonField.getString("name") != null) {
-					jsonField.put("annotations", annotationsField.toList())
-				}
-            }
+        val tableAnnot = entity.annotations.find { it is Table } as Table
+        if ((!tableAnnot.name.isBlank() && !tableAnnot.name.equals(jsonTable.name))
+			|| (!entity.name.equals(jsonTable.name))) {
+			return true
         }
 		
 		return false
@@ -350,7 +304,7 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 
         companion object {
 
-            fun buid(context: Context, entity: Class<*>?): CacheSmithOpenHelper {
+            fun buid(context: Context, entity: Class<*>): CacheSmithOpenHelper {
 
                 val dbName = PreferencesManager.getDatabaseName(context)
 

@@ -1,6 +1,9 @@
 package com.cachesmith.library.annotations
 
 import java.lang.Exception
+import com.cachesmith.library.util.DataType
+import com.cachesmith.library.util.ActionType
+import com.cachesmith.library.util.RelationType
 
 /**
  * Defines the entity model of a data source.
@@ -27,7 +30,7 @@ annotation class Table(val name: String = "")
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
-annotation class Field(val name: String = "")
+annotation class Column(val name: String = "", val default: String = "", val type: DataType = DataType.NONE)
 
 /**
  * Defines if field is a primary key of the entity.
@@ -74,11 +77,12 @@ annotation class NotNullable
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
 @MustBeDocumented
-annotation class Relationship(val type: RelationTypes)
-
-enum class RelationTypes {
-    ONE_TO_ONE, ONE_TO_MANY, MANY_TO_MANY
-}
+annotation class Relationship(val type: RelationType,
+                              val targetTable: String = "",
+                              val targetColumn: String = "",
+                              val onUpdate: ActionType = ActionType.NO_ACTION,
+                              val onDelete: ActionType = ActionType.NO_ACTION,
+                              val query: String = "")
 
 object AnnotationValidator {
 	/**
