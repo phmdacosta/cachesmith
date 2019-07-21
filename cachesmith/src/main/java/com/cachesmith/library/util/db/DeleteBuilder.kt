@@ -1,8 +1,6 @@
 package com.cachesmith.library.util.db
 
-import com.cachesmith.library.util.QueryBuilder
-
-class DropQueryBuilder : QueryBuilder {
+class DeleteBuilder : QueryBuilder {
 	
 	override fun build(): String {
 		return ""

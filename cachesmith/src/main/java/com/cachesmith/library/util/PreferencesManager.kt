@@ -5,16 +5,16 @@ import android.content.SharedPreferences
 import com.cachesmith.library.config.Config
 
 object PreferencesManager {
-	
+
+    private const val SUFIX_TABLE = "_Table"
+
     private var mPref: SharedPreferences? = null
 
     fun open(context: Context): SharedPreferences {
 		mPref ?: synchronized(this) {
-			if (mPref == null) {
-	            mPref ?: context.getSharedPreferences(Config.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE).also {
-	                mPref = it
-	            }
-	        }
+            mPref ?: context.getSharedPreferences(Config.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE).also {
+                mPref = it
+            }
 		}
         return mPref!!
     }
@@ -22,7 +22,8 @@ object PreferencesManager {
     fun saveTableJson(context: Context, key: String, json: JSONTable) {
         synchronized(this) {
             open(context).edit().also { sPref ->
-                sPref.putString(key, json.toString())
+                val fullKey = key.plus(SUFIX_TABLE)
+                sPref.putString(fullKey, json.toString())
                 sPref.apply()
             }
         }
@@ -32,7 +33,8 @@ object PreferencesManager {
         var jsonTable: JSONTable
         synchronized(this) {
             open(context).also { sPref ->
-                val s = sPref.getString(key, "")
+                val fullKey = key.plus(SUFIX_TABLE)
+                val s = sPref.getString(fullKey, "")
                 jsonTable = JSONTable(s ?: "")
             }
         }

@@ -1,7 +1,9 @@
-package com.cachesmith.library.util
+package com.cachesmith.library.util.db
 
-class CreateQueryBuilder : QueryBuilder {
-	
+import com.cachesmith.library.util.db.models.ColumnObject
+
+class CreateTableBuilder : QueryBuilder {
+
 	companion object {
 		const val SPACE = " "
 		const val SEPARATOR = ",".plus(SPACE)
@@ -18,7 +20,7 @@ class CreateQueryBuilder : QueryBuilder {
 	
 	var tableName = ""
 		set(value) {
-			field = value.plus(" ")
+			field = value.plus(SPACE)
 		}
 	
 	val columnsList = mutableListOf<ColumnObject>()

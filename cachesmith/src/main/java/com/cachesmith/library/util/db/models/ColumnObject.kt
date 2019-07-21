@@ -1,4 +1,6 @@
-package com.cachesmith.library.util
+package com.cachesmith.library.util.db.models
+
+import com.cachesmith.library.util.DataType
 
 class ColumnObject() {
 	
