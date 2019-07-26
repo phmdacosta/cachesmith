@@ -1,29 +1,22 @@
 package com.cachesmith.library.util.db.models
 
 import com.cachesmith.library.util.DataType
+import com.cachesmith.library.util.ObjectClass
 
-class ColumnObject() {
+class ColumnObject @JvmOverloads constructor (var name: String = "") {
 	
-	constructor (name: String) : this() {
-		this.name = name
-	}
-	
-	var name: String = ""
 	var isUnique: Boolean = false
 	var isPrimaryKey: Boolean = false
 	var isAutoIncrement: Boolean = false
 	var isNotNull: Boolean = false
 	
-	var typeClass: Class<*>? = null
+	var typeClass: ObjectClass? = null
 	var typeName: String = DataType.NONE.value
 		get() {
 			if (!DataType.NONE.value.equals(field)) {
 				return field
 			}
 			return getTypeByClass(typeClass).value			
-		}
-		set(value) {
-			field = value
 		}
 	
 	var foreignKey: ForeignKeyObject = ForeignKeyObject()
@@ -36,16 +29,16 @@ class ColumnObject() {
 	
 	var foreignKeyQuery: String = ""
 	
-	fun getTypeByClass(typeClass: Class<*>?): DataType {
+	fun getTypeByClass(typeClass: ObjectClass?): DataType {
 		if (typeClass != null) {
 			when {
-                typeClass.name.contains("int", true) -> return DataType.INTEGER
-                typeClass.name.contains("long", true) -> return DataType.INTEGER
-                typeClass.name.contains("double", true) -> return DataType.REAL
-                typeClass.name.contains("float", true) -> return DataType.REAL
-                typeClass.name.contains("string", true) -> return DataType.TEXT
-                typeClass.name.contains("char", true) -> return DataType.TEXT
-                typeClass.name.contains("byte", true) -> return DataType.BLOB
+                typeClass.simpleName.contains("int", true) -> return DataType.INTEGER
+                typeClass.simpleName.contains("long", true) -> return DataType.INTEGER
+                typeClass.simpleName.contains("double", true) -> return DataType.REAL
+                typeClass.simpleName.contains("float", true) -> return DataType.REAL
+                typeClass.simpleName.contains("string", true) -> return DataType.TEXT
+                typeClass.simpleName.contains("char", true) -> return DataType.TEXT
+                typeClass.simpleName.contains("byte", true) -> return DataType.BLOB
             }
 		}
 		return DataType.NONE

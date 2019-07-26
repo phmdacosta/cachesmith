@@ -2,15 +2,8 @@ package com.cachesmith.library.util.db.models
 
 import com.cachesmith.library.util.ActionType
 
-class ForeignKeyObject() {
+class ForeignKeyObject @JvmOverloads constructor(var referenceTable: String = "", var referenceColumn: String = "") {
 	
-	constructor(referenceTable: String, referenceColumn: String) : this() {
-		this.referenceTable = referenceTable
-		this.referenceColumn = referenceColumn
-	}
-	
-	var referenceTable: String = ""
-	var referenceColumn: String = ""
 	var deferred: Boolean = false
 	var onDeleteAction: ActionType = ActionType.NO_ACTION
 	var onUpdateAction: ActionType = ActionType.NO_ACTION

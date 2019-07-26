@@ -8,7 +8,7 @@ object PreferencesManager {
 
     private const val SUFIX_TABLE = "_Table"
 
-    private var mPref: SharedPreferences? = null
+    @Volatile private var mPref: SharedPreferences? = null
 
     fun open(context: Context): SharedPreferences {
 		mPref ?: synchronized(this) {

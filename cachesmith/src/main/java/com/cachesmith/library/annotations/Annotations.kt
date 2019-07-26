@@ -27,7 +27,9 @@ annotation class Table(val name: String = "")
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FIELD)
-annotation class Column(val name: String = "", val default: String = "", val type: DataType = DataType.NONE)
+annotation class Column(val name: String = "",
+						val default: String = "",
+						val type: DataType = DataType.NONE)
 
 /**
  * Defines if field is a primary key of the entity.
