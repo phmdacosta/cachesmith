@@ -128,8 +128,7 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 	}
 
 	private fun execCloneTable(db: SQLiteDatabase?, tableName: String) {
-		val queryBuilder = CloneTableBuilder()
-		queryBuilder.tableName = tableName
+		val queryBuilder = CloneTableBuilder(tableName)
 		Log.i("TESTE", queryBuilder.build())
 	}
 
@@ -275,40 +274,3 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
         }
     }
 }
-
-//fun Class<*>.getValidFields(): Array<Field> {
-//	val fields = mutableListOf<Field>()
-//	this.declaredFields.forEach { field ->
-//		try {
-//			this.getMethod("get".plus(field.name.capitalize()))
-//		} catch (e: Exception) {
-//			return@forEach
-//		}
-//
-//		fields.add(field)
-//	}
-//	return fields.toTypedArray()
-//}
-//
-//fun Class<*>.getTableName(): String {
-//	var tableName = this.name
-//	val tableAnnot = (this.annotations.find { it is Table })?.let { it as Table }
-//	if (tableAnnot!= null && !tableAnnot.name.isBlank()) {
-//		tableName = tableAnnot.name
-//	}
-//	return tableName
-//}
-//
-//fun Field.getColumnName(): String {
-//	var columnName = this.name
-//	this.annotations.forEach { columnAnnot ->
-//		when(columnAnnot) {
-//			is Column -> {
-//				if (!columnAnnot.name.isBlank()) {
-//					columnName = columnAnnot.name
-//				}
-//			}
-//		}
-//	}
-//	return columnName
-//}
