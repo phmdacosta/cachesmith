@@ -87,4 +87,5 @@ class ObjectClass private constructor() {
 			}
 			return tableName
 		}
+	
 }

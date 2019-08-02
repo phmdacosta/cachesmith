@@ -1,8 +1,9 @@
 package com.cachesmith.library.util.db
 
 import com.cachesmith.library.util.ObjectClass
+import kotlin.reflect.KClass
 
-class InsertBuilder<T>(val entityClass: ObjectClass) : QueryBuilder {
+open class InsertBuilder(val tableName: String) : QueryBuilder {
 	
 	companion object {
 		const val SPACE = " "
@@ -13,26 +14,46 @@ class InsertBuilder<T>(val entityClass: ObjectClass) : QueryBuilder {
 		const val END_QUOTE = ")".plus(SPACE)
 	}
 	
-	val entity: T? = null
+	val columns = mutableMapOf<String, Any>()
+	
+	fun addParameter(columnName: String, value: Any) {
+		columns.put(columnName, value);
+	}
 	
 	override fun build(): String {
-		if (entity == null)
-			throw IllegalArgumentException("Entity can not be null")
 		
 		val query = StringBuffer()
 		query.append(INSERT_INTO)
-		query.append(entityClass.tableName)
+		query.append(tableName)
 		query.append(SPACE)
-		query.append(START_QUOTE)
 		
-		val fieldsIter = entityClass.fields.iterator()
-		while(fieldsIter.hasNext()) {
-			val field = fieldsIter.next()
+		// Adding column's names and values
+		val columnNames = StringBuffer()
+		val columnValues = StringBuffer()
+		val columnsIter = columns.iterator()
+		while(columnsIter.hasNext()) {
+			val column = columnsIter.next()
 			
-			if (fieldsIter.hasNext())
-				query.append(SEPARATOR)
+			columnNames.append(column.key)
+			columnValues.append(column.value)
+			
+			if (columnsIter.hasNext()) {
+				columnNames.append(SEPARATOR)
+				columnValues.append(SEPARATOR)
+			}
+			
+			columnNames.append(SPACE)
+			columnValues.append(SPACE)
 		}
 		
-		return ""
+		query.append(START_QUOTE)
+		query.append(columnNames.toString())
+		query.append(END_QUOTE)
+		query.append(VALUES)
+		query.append(START_QUOTE)
+		query.append(columnValues.toString())	
+		query.append(END_QUOTE)
+				
+		return query.toString()
 	}
 }

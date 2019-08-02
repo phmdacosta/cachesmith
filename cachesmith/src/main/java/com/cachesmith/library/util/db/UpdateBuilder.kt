@@ -1,6 +1,6 @@
 package com.cachesmith.library.util.db
 
-class UpdateBuilder : QueryBuilder {
+open class UpdateBuilder : QueryBuilder {
 	
 	override fun build(): String {
 		return ""

@@ -1,6 +1,6 @@
 package com.cachesmith.library.util.db
 
-class DeleteBuilder : QueryBuilder {
+open class DeleteBuilder : QueryBuilder {
 	
 	override fun build(): String {
 		return ""

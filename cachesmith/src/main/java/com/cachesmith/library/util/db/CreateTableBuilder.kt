@@ -2,7 +2,7 @@ package com.cachesmith.library.util.db
 
 import com.cachesmith.library.util.db.models.ColumnObject
 
-class CreateTableBuilder : QueryBuilder {
+open class CreateTableBuilder : QueryBuilder {
 
 	companion object {
 		const val SPACE = " "

@@ -42,3 +42,9 @@ enum class DataType(val value: String) {
 	DATE("DATE"),
 	DATETIME("DATETIME")
 }
+
+enum class JoinType {
+	CROSS_JOIN,
+	INNER_JOIN,
+	OUTER_JOIN
+}

@@ -1,6 +1,6 @@
 package com.cachesmith.library.util.db
 
-class DropTableBuilder : QueryBuilder {
+open class DropTableBuilder : QueryBuilder {
 
 	companion object {
 		const val SPACE = " "
