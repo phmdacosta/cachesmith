@@ -48,6 +48,14 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
         val helper = CacheSmithHelper.create(context, model!!)
         return dataSource.primaryConstructor?.call(helper) as T
     }
+
+    override fun setManualVersion(value: Boolean) {
+        PreferencesManager.saveManualVersionCheck(context, value)
+    }
+
+    override fun isManualVersionDefined(): Boolean {
+        return PreferencesManager.getManualVersionCheck(context)
+    }
     
     override fun setVersion(version: Int) {
     	PreferencesManager.saveVersion(context, version)
@@ -63,5 +71,35 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
 
     override fun getDatabaseName(): String {
         return PreferencesManager.getDatabaseName(context)
+    }
+
+    override fun addModel(model: Class<*>) {
+        val savedModels = PreferencesManager.getModels(context)
+        if (!savedModels.contains(model.name)) {
+            savedModels.add(model.name)
+            PreferencesManager.saveModels(context, savedModels)
+        }
+    }
+
+    override fun addModel(model: KClass<*>) {
+        val savedModels = PreferencesManager.getModels(context)
+        if (!savedModels.contains(model.qualifiedName)) {
+            savedModels.add(model.qualifiedName!!)
+            PreferencesManager.saveModels(context, savedModels)
+        }
+    }
+
+    override fun addAllModels(models: List<Class<*>>) {
+        val listNames = mutableListOf<String>()
+        models.forEach {
+            listNames.add(it.name)
+        }
+        PreferencesManager.saveModels(context, listNames)
+    }
+
+    override fun initDatabase() {
+        DataSource::class.nestedClasses.forEach {
+            Log.i("TESTE", it.qualifiedName)
+        }
     }
 }

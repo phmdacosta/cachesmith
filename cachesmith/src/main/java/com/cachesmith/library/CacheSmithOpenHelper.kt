@@ -20,12 +20,12 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
         SQLiteOpenHelper(context, name, null, version) {
 
     override fun onCreate(db: SQLiteDatabase?) {
-        Log.i("TESTE", "CacheSmithOpenHelper.onCreate")
+        Log.i("TESTE", "CacheSmithOpenHelper.onCreate for " + entity.simpleName)
 		execCreateTable(db, entity.tableName, true)
     }
 
 	override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-		Log.i("TESTE", "CacheSmithOpenHelper.onUpgrade")
+		Log.i("TESTE", "CacheSmithOpenHelper.onUpgrade for " + entity.simpleName)
 
 		if (!entityChanged()) {
 			return
@@ -263,14 +263,23 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
             fun buid(context: Context, entity: ObjectClass): CacheSmithOpenHelper {
 
                 val dbName = PreferencesManager.getDatabaseName(context)
-				val newVersion: Int = PreferencesManager.getVersion(context)
+				var newVersion: Int = PreferencesManager.getVersion(context)
 
 				if (newVersion < 0) {
 					throw NoVersionException("Could not get version for database.")
 				}
 
+				if (entityExists(context, entity)) {
+					newVersion = 0
+				}
+
                 return CacheSmithOpenHelper(context, dbName, newVersion, entity)
             }
+
+			private fun entityExists(context: Context, entity: ObjectClass): Boolean {
+				val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
+				return jsonTable.isEmpty()
+			}
         }
     }
 }

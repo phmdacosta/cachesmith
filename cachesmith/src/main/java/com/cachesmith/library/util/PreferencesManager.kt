@@ -7,6 +7,7 @@ import com.cachesmith.library.config.Config
 object PreferencesManager {
 
     private const val SUFIX_TABLE = "_Table"
+    private const val MODELS_KEY = "modelsKey"
 
     @Volatile private var mPref: SharedPreferences? = null
 
@@ -115,5 +116,34 @@ object PreferencesManager {
             }
         }
         return value!!
+    }
+
+    fun saveModels(context: Context, modelNames: List<String>) {
+        synchronized(this) {
+            open(context).edit().also {
+                val iterator = modelNames.iterator()
+                while (iterator.hasNext()) {
+                    var names = iterator.next()
+                    if (iterator.hasNext()) {
+                        names = names.plus(";")
+                    }
+                    it.putString(MODELS_KEY, names)
+                }
+                it.apply()
+            }
+        }
+    }
+
+    fun getModels(context: Context): MutableList<String> {
+        var array: List<String> = mutableListOf()
+        synchronized(this) {
+            open(context).also {
+                val value = it.getString(MODELS_KEY, "")
+                if (value != null && !value.isBlank()) {
+                    array = value.split(";")
+                }
+            }
+        }
+        return array.toMutableList()
     }
 }

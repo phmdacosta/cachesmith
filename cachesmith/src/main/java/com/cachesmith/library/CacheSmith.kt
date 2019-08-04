@@ -6,17 +6,18 @@ import kotlin.reflect.KClass
 /**
  * CacheSmith is a ORM library that abstracts and adapts Android SQLite implementation
  * by using annotations to mapping classes to SQLite relation database.
- * To start to use the library create a instance by calling the method/function [create].
+ * To start to use the library create a instance by calling the method/function [create]
+ * passing the Android [Context] object.
  * By the instance just call [load] passing your DataSource class. This will return a
  * DataSource's instance with table created and updated in database, ready to execute
  * commands.
  * <p>
  * <pre><code>
  * <b><i>Kotlin</i></b>
- * val dataSource = CacheSmith.create().load(DataSource::class)
+ * val dataSource = CacheSmith.create(context).load(DataSource::class)
  * 
  * <b><i>Java</i></b>
- * DataSource dataSource = CacheSmith.create().load(DataSource.class)
+ * DataSource dataSource = CacheSmith.create(context).load(DataSource.class)
  * </code></pre>
  *
  * @author Pedro da Costa
@@ -40,6 +41,9 @@ interface CacheSmith {
 	 * @return the datasource object
 	 */
     fun <T : DataSource> load(dataSource: KClass<T>): T
+
+	fun setManualVersion(value: Boolean)
+	fun isManualVersionDefined(): Boolean
 	
 	/**
 	 * Defines the version of database. SQLite needs a version to control database modifications,
@@ -78,6 +82,11 @@ interface CacheSmith {
 	 * @return database name
 	 */
     fun getDatabaseName(): String
+
+	fun addModel(model: Class<*>)
+	fun addModel(model: KClass<*>)
+	fun addAllModels(models: List<Class<*>>)
+    fun initDatabase()
 
     companion object {
         @Volatile private var instance: CacheSmith? = null

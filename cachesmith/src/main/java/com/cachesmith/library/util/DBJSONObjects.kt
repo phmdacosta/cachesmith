@@ -44,6 +44,10 @@ class JSONTable() {
 		set(value) {
 			rawJson.put(QUANTITY, value)
 		}
+
+	fun isEmpty(): Boolean {
+		return rawJson.isNull(NAME)
+	}
 	
 	fun addColumnJson(jsonColumn: JSONColumn) {
 		columnsJsonArray.put(jsonColumn.toJSONObject())
