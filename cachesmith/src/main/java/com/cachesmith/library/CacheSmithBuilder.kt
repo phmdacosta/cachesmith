@@ -18,35 +18,41 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
     }
 
     override fun <T : DataSource> load(dataSource: Class<T>): T {
-        var model: ObjectClass? = null
+		val models = mutableListOf<ObjectClass>()
         dataSource.annotations.forEach {
             if (it is Entity) {
                 try {
-                    model = ObjectClass(Class.forName(it.value))
+                    val model = ObjectClass(Class.forName(it.value))
+					models.add(model)
                 } catch (e: ClassNotFoundException) {
                     Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
                     throw e
                 }
             }
         }
-        val helper = CacheSmithHelper.create(context, model!!)
+        val helper = CacheSmithHelper.create(context, models)
         return dataSource.getConstructor(SQLiteOpenHelper::class.java).newInstance(helper) as T
     }
 
     override fun <T : DataSource> load(dataSource: KClass<T>): T {
-        var model: ObjectClass? = null
+		val models = mutableListOf<ObjectClass>()
         dataSource.annotations.forEach {
             if (it is Entity) {
                 try {
-                    model = ObjectClass(Class.forName(it.value).kotlin)
+                    val model = ObjectClass(Class.forName(it.value).kotlin)
+					models.add(model)
                 } catch (e: ClassNotFoundException) {
                     Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
                     throw e
                 }
             }
         }
-        val helper = CacheSmithHelper.create(context, model!!)
+        val helper = CacheSmithHelper.create(context, models)
         return dataSource.primaryConstructor?.call(helper) as T
+    }
+	
+	override fun initDatabase() {
+		CacheSmithHelper.create(context, getModelList())
     }
 
     override fun setManualVersion(value: Boolean) {
@@ -96,10 +102,18 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
         }
         PreferencesManager.saveModels(context, listNames)
     }
-
-    override fun initDatabase() {
-        DataSource::class.nestedClasses.forEach {
-            Log.i("TESTE", it.qualifiedName)
-        }
-    }
+	
+	private fun getModelList(): List<ObjectClass> {
+		val result = mutableListOf<ObjectClass>()
+		val listModels = PreferencesManager.getModels(context)
+		try {
+			listModels.forEach {
+				val model = Class.forName(it)
+				result.add(ObjectClass(model))
+			}
+		} catch(e: ClassNotFoundException) {
+			throw e
+		}
+		return result
+	}
 }

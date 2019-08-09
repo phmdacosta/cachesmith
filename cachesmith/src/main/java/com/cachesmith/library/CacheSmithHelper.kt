@@ -10,9 +10,9 @@ object CacheSmithHelper {
     @Volatile private var instance: SQLiteOpenHelper? = null
 
     @Throws(NoVersionException::class)
-    fun create(context: Context, entity: ObjectClass): SQLiteOpenHelper {
+    fun create(context: Context, entities: List<ObjectClass>): SQLiteOpenHelper {
    		instance ?: synchronized(this) {
-        	instance ?: CacheSmithOpenHelper.Builder.buid(context, entity).also { instance = it }
+        	instance ?: CacheSmithOpenHelper.Builder.buid(context, entities).also { instance = it }
         }
         return instance!!
     }
