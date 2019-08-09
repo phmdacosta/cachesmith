@@ -2,20 +2,10 @@ package com.cachesmith.library.util.db
 
 import com.cachesmith.library.util.db.models.ColumnObject
 
-open class CreateTableBuilder : QueryBuilder {
+open class CreateTableBuilder : QueryBuilder() {
 
 	companion object {
-		const val SPACE = " "
 		const val SEPARATOR = ",".plus(SPACE)
-		const val CREATE_TABLE = "CREATE TABLE".plus(SPACE)
-		const val START_QUOTE = "(".plus(SPACE)
-		const val END_QUOTE = ")".plus(SPACE)
-		const val PRIMARY_KEY = "PRIMARY KEY".plus(SPACE)
-		const val UNIQUE = "UNIQUE".plus(SPACE)
-		const val AUTO_INCREMENT = "AUTO_INCREMENT".plus(SPACE)
-		const val NOT_NULL = "NOT NULL".plus(SPACE)
-		const val FOREIGN_KEY = "FOREIGN KEY"
-		const val REFERENCES = "REFERENCES".plus(SPACE)
 	}
 	
 	var tableName = ""
@@ -35,8 +25,8 @@ open class CreateTableBuilder : QueryBuilder {
 	
 	override fun build(): String {
 		val query = StringBuffer()
-		query.append(CREATE_TABLE)
-		query.append(START_QUOTE)
+		query.append(SQLCommands.CREATE_TABLE.value)
+		query.append(START_PARAM)
 		
 		val iterColumns = columnsList.iterator()
 		while (iterColumns.hasNext()) {
@@ -46,19 +36,23 @@ open class CreateTableBuilder : QueryBuilder {
 			query.append(column.typeName.plus(SPACE))
 			
 			if (column.isPrimaryKey) {
-				query.append(PRIMARY_KEY)
+				query.append(SQLCommands.PRIMARY_KEY.value)
+				query.append(SPACE)
 			}
 			
 			if (column.isUnique) {
-				query.append(UNIQUE)
+				query.append(SQLCommands.UNIQUE.value)
+				query.append(SPACE)
 			}
 			
 			if (column.isAutoIncrement) {
-				query.append(AUTO_INCREMENT)
+				query.append(SQLCommands.AUTO_INCREMENT.value)
+				query.append(SPACE)
 			}
 			
 			if (column.isNotNull) {
-				query.append(NOT_NULL)
+				query.append(SQLCommands.NOT_NULL.value)
+				query.append(SPACE)
 			}
 			
 			if (iterColumns.hasNext()) {
@@ -71,19 +65,20 @@ open class CreateTableBuilder : QueryBuilder {
 				query.append(column.foreignKeyQuery)
 			} else {
 				query.append(SEPARATOR)			
-				query.append(FOREIGN_KEY)
-				query.append(START_QUOTE)
+				query.append(SQLCommands.FOREIGN_KEY.value)
+				query.append(START_PARAM)
 				query.append(column.name.plus(SPACE))
-				query.append(END_QUOTE)
-				query.append(REFERENCES)
-				query.append(column.foreignKey.referenceTable.plus(SPACE))
-				query.append(START_QUOTE)
-				query.append(column.foreignKey.referenceColumn.plus(SPACE))
-				query.append(END_QUOTE)
+				query.append(END_PARAM)
+				query.append(SQLCommands.REFERENCES.value)
+				query.append(SPACE)
+				query.append(column.foreignKey.referenceTable)
+				query.append(START_PARAM)
+				query.append(column.foreignKey.referenceColumn)
+				query.append(END_PARAM)
 			}
 		}
 		
-		query.append(END_QUOTE)
+		query.append(END_PARAM)
 		return query.toString()
 	}
 }

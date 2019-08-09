@@ -3,6 +3,7 @@ package com.cachesmith.library.util
 import kotlin.reflect.KProperty
 import java.lang.reflect.Field
 import com.cachesmith.library.annotations.Column
+import com.cachesmith.library.annotations.PrimaryKey
 
 class ObjectField private constructor() {
 	

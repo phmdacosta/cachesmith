@@ -2,8 +2,48 @@ package com.cachesmith.library.util.db.models
 
 import com.cachesmith.library.util.DataType
 import com.cachesmith.library.util.ObjectClass
+import com.cachesmith.library.annotations.PrimaryKey
+import com.cachesmith.library.util.ObjectField
+import com.cachesmith.library.annotations.Column
+import com.cachesmith.library.annotations.Unique
+import com.cachesmith.library.annotations.AutoIncrement
+import com.cachesmith.library.annotations.NotNullable
+import com.cachesmith.library.annotations.Relationship
+import com.cachesmith.library.util.RelationType
+import com.cachesmith.library.util.db.DatabaseUtils
 
 class ColumnObject @JvmOverloads constructor (var name: String = "") {
+	
+	constructor (field: ObjectField) : this(field.columnName) {
+		field.annotations.forEach { annotation ->
+			when(annotation) {
+				is Column -> {
+					if (annotation.type != DataType.NONE) {
+						typeName = annotation.type.value
+					} else {
+						typeClass = field.type.clazz
+					}
+				}
+				is PrimaryKey -> isPrimaryKey =  true
+				is Unique -> isUnique = true
+				is AutoIncrement -> isAutoIncrement = true
+				is NotNullable -> isNotNull = true
+				is Relationship -> {
+					if (!annotation.query.isBlank()) {
+						foreignKeyQuery = annotation.query
+					} else {
+						if (annotation.type == RelationType.ONE_TO_ONE
+								|| annotation.type == RelationType.MANY_TO_ONE) {
+							foreignKey = DatabaseUtils.getForeignKeyObject(annotation, field.type.clazz)
+						}
+						else if (annotation.type == RelationType.MANY_TO_MANY) {
+//							createRelationalTable(db, field.type.clazz)
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	var isUnique: Boolean = false
 	var isPrimaryKey: Boolean = false

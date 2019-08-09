@@ -7,12 +7,18 @@ package com.cachesmith.library.util.db
  * Query builders are <b>not</b> final classes and it is free for developers 
  * customize it by hierarchy or kotlin extensions.
  */
-interface QueryBuilder {
+abstract class QueryBuilder {
+	
+	companion object {
+		const val SPACE = " "
+		const val START_PARAM = "(".plus(SPACE)
+		const val END_PARAM = ")".plus(SPACE)
+	}
 
 	/**
-	 * Build the {@link SQLite} database query.
+	 * Build the [SQLite] database query.
 	 *
-	 * @return {@link SQLite} database query
+	 * @return SQLite database query
 	 */
-	fun build(): String
+	abstract fun build(): String
 }

@@ -2,21 +2,15 @@ package com.cachesmith.library.util.db
 
 import com.cachesmith.library.util.ObjectClass
 import kotlin.reflect.KClass
+import com.cachesmith.library.exceptions.SQLiteQueryException
 
-open class SelectBuilder(val entity: ObjectClass) : QueryBuilder  {
+open class SelectBuilder(val entity: ObjectClass) : QueryBuilder()  {
 	
 	companion object {
-		const val SPACE = " "
 		const val ALL = "*".plus(SPACE)
 		const val SEPARATOR = ",".plus(SPACE)
-		const val SELECT = "SELECT".plus(SPACE)
-		const val FROM = "FROM".plus(SPACE)
-		const val WHERE = "WHERE".plus(SPACE)
-		const val AND = "AND".plus(SPACE)
-		const val ORDER_BY = "ORDER BY".plus(SPACE)
 		const val EQUALS = "=".plus(SPACE)
-		const val START_QUOTE = "(".plus(SPACE)
-		const val END_QUOTE = ")".plus(SPACE)
+		const val ERROR_MSG_FILTER = "Input a valid filter"
 	}
 	
 	constructor(entity: Class<*>) : this(ObjectClass(entity))
@@ -27,7 +21,58 @@ open class SelectBuilder(val entity: ObjectClass) : QueryBuilder  {
 	var orderBy: String = ""
 	var selectAll = true
 	
-	fun addFilter(columnName: String, value: Any) {
+	fun isFilterColumnValid(columnName: String): Boolean {
+		if (columnName.contains("'"))
+			return false
+		
+		val sqlCommands = enumValues<SQLCommands>();
+		sqlCommands.forEach {
+			if (columnName.contains(it.value))
+				return false
+		}
+		
+		return true
+	}
+	
+	fun addFilter(columnName: String, value: String) {
+		if (isFilterColumnValid(columnName) || value.contains("'"))
+			throw SQLiteQueryException(ERROR_MSG_FILTER)
+		
+		enumValues<SQLCommands>().forEach {
+			if (value.contains(it.value))
+				throw SQLiteQueryException(ERROR_MSG_FILTER)
+		}
+		
+		val valueFilter = "'$value'"
+		
+		filters.put(columnName, valueFilter)
+	}
+	
+	fun addFilter(columnName: String, value: Char) {
+		if (isFilterColumnValid(columnName))
+			throw SQLiteQueryException(ERROR_MSG_FILTER)
+		
+		filters.put(columnName, value)
+	}
+	
+	fun addFilter(columnName: String, value: Int) {
+		if (isFilterColumnValid(columnName))
+			throw SQLiteQueryException(ERROR_MSG_FILTER)
+		
+		filters.put(columnName, value)
+	}
+	
+	fun addFilter(columnName: String, value: Double) {
+		if (isFilterColumnValid(columnName))
+			throw SQLiteQueryException(ERROR_MSG_FILTER)
+		
+		filters.put(columnName, value)
+	}
+	
+	fun addFilter(columnName: String, value: Float) {
+		if (isFilterColumnValid(columnName))
+			throw SQLiteQueryException(ERROR_MSG_FILTER)
+		
 		filters.put(columnName, value)
 	}
 	
@@ -56,7 +101,7 @@ open class SelectBuilder(val entity: ObjectClass) : QueryBuilder  {
 	
 	open fun buildFilters(query: StringBuffer) {
 		if (filters.isNotEmpty()) {
-			query.append(WHERE)
+			query.append(SQLCommands.WHERE.value)
 			val filtersIter = filters.iterator()
 			while(filtersIter.hasNext()) {
 				val filter = filtersIter.next()
@@ -68,7 +113,7 @@ open class SelectBuilder(val entity: ObjectClass) : QueryBuilder  {
 				query.append(SPACE)
 				
 				if (filtersIter.hasNext()) {
-					query.append(AND)
+					query.append(SQLCommands.AND.value)
 				}
 			}
 		}
@@ -76,11 +121,11 @@ open class SelectBuilder(val entity: ObjectClass) : QueryBuilder  {
 	
 	override fun build(): String {
 		val query = StringBuffer()
-		query.append(SELECT)
+		query.append(SQLCommands.SELECT.value)
 		
 		buildSelectColumns(query)
 		
-		query.append(FROM)
+		query.append(SQLCommands.FROM.value)
 		query.append(entity.tableName)
 		query.append(SPACE)
 		
@@ -89,7 +134,7 @@ open class SelectBuilder(val entity: ObjectClass) : QueryBuilder  {
 		
 		// Order by statement
 		if (!orderBy.isBlank()) {
-			query.append(ORDER_BY)
+			query.append(SQLCommands.ORDER_BY.value)
 			query.append(orderBy)
 		}
 		

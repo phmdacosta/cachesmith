@@ -1,17 +1,13 @@
 package com.cachesmith.library.util.db
 
-open class DropTableBuilder : QueryBuilder {
-
-	companion object {
-		const val SPACE = " "
-		const val DROP_TABLE = "DROP TABLE".plus(SPACE)
-	}
-
+open class DropTableBuilder : QueryBuilder() {
+	
 	var tableName = ""
 	
 	override fun build(): String {
 		val query = StringBuffer()
-		query.append(DROP_TABLE)
+		query.append(SQLCommands.DROP_TABLE.value)
+		query.append(SPACE)
 		query.append(tableName)
 		return query.toString()
 	}

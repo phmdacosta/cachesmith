@@ -3,15 +3,10 @@ package com.cachesmith.library.util.db
 import com.cachesmith.library.util.ObjectClass
 import kotlin.reflect.KClass
 
-open class InsertBuilder(val tableName: String) : QueryBuilder {
+open class InsertBuilder(val tableName: String) : QueryBuilder() {
 	
 	companion object {
-		const val SPACE = " "
 		const val SEPARATOR = ",".plus(SPACE)
-		const val INSERT_INTO = "INSERT INTO".plus(SPACE)
-		const val VALUES = "VALUES".plus(SPACE)
-		const val START_QUOTE = "(".plus(SPACE)
-		const val END_QUOTE = ")".plus(SPACE)
 	}
 	
 	val columns = mutableMapOf<String, Any>()
@@ -23,7 +18,7 @@ open class InsertBuilder(val tableName: String) : QueryBuilder {
 	override fun build(): String {
 		
 		val query = StringBuffer()
-		query.append(INSERT_INTO)
+		query.append(SQLCommands.INSERT_INTO.value)
 		query.append(tableName)
 		query.append(SPACE)
 		
@@ -46,13 +41,13 @@ open class InsertBuilder(val tableName: String) : QueryBuilder {
 			columnValues.append(SPACE)
 		}
 		
-		query.append(START_QUOTE)
+		query.append(START_PARAM)
 		query.append(columnNames.toString())
-		query.append(END_QUOTE)
-		query.append(VALUES)
-		query.append(START_QUOTE)
+		query.append(END_PARAM)
+		query.append(SQLCommands.VALUES.value)
+		query.append(START_PARAM)
 		query.append(columnValues.toString())	
-		query.append(END_QUOTE)
+		query.append(END_PARAM)
 				
 		return query.toString()
 	}
