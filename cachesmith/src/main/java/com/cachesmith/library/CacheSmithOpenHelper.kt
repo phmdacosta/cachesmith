@@ -5,65 +5,76 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.cachesmith.library.annotations.*
-import java.lang.Exception
 import com.cachesmith.library.exceptions.NoVersionException
 import com.cachesmith.library.util.*
 import com.cachesmith.library.util.db.CloneTableBuilder
 import com.cachesmith.library.util.db.CreateTableBuilder
 import com.cachesmith.library.util.db.DropTableBuilder
 import com.cachesmith.library.util.db.models.ColumnObject
-import com.cachesmith.library.util.db.models.ForeignKeyObject
-import java.lang.reflect.Field
-import kotlin.reflect.KMutableProperty
-import kotlin.coroutines.Continuation
 import com.cachesmith.library.util.db.DatabaseUtils
 
-class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, private val entities: List<ObjectClass>):
-        SQLiteOpenHelper(context, name, null, version) {
+class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, val entities: List<ObjectClass>) :
+		SQLiteOpenHelper(context, name, null, version) {
+
+	init {
+		if (version > PreferencesManager.getVersion(context)) {
+			this.writableDatabase
+			PreferencesManager.saveVersion(context, version)
+		}
+	}
 
 	companion object {
 		private fun tableNotExists(context: Context, entity: ObjectClass): Boolean {
 			val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
 			return jsonTable.isEmpty()
 		}
-		
-		private fun anyEntityChanged(context: Context, entities: List<ObjectClass>): Boolean {
-			entities.forEach { entity ->
-				if (tableNotExists(context, entity))
-					return true
 
-				val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
-				
-				if (entity.tableName != jsonTable.name)
-					return true
-		
-				if (jsonTable.columnQuantity != entity.fields.size)
-					return true
-		
-				entity.fields.forEach { field ->
-					jsonTable.listJsonColumns().forEach { jsonCollumn ->
-						if (field.name == jsonCollumn.field) {
-							val columnAnnot = (field.annotations.find { it is Column })?.let { it as Column }
-							if (columnAnnot == null) {
-								if (field.name != jsonCollumn.name) return true
-							}
-							else {
-								if (columnAnnot.name.isBlank() && field.name != jsonCollumn.name)
-									return true
-								else if (columnAnnot.name != jsonCollumn.name)
-									return true
-							}
-		
-							if (field.type.name != jsonCollumn.type)
+		private fun entityChanged(context: Context, entity: ObjectClass): Boolean {
+			if (tableNotExists(context, entity))
+				return true
+
+			val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
+
+			if (entity.tableName != jsonTable.name)
+				return true
+
+			if (jsonTable.columnQuantity != entity.fields.size)
+				return true
+
+			entity.fields.forEach { field ->
+				jsonTable.listJsonColumns().forEach { jsonCollumn ->
+					if (field.name == jsonCollumn.field) {
+						val columnAnnot = (field.annotations.find { it is Column })?.let { it as Column }
+						if (columnAnnot == null) {
+							if (field.name != jsonCollumn.name) return true
+						}
+						else {
+							if (columnAnnot.name.isBlank() && field.name != jsonCollumn.name)
 								return true
-		
-							if (annotationsChanged(field, jsonCollumn))
+							else if (columnAnnot.name != jsonCollumn.name)
 								return true
 						}
+
+						if (field.type.name != jsonCollumn.type)
+							return true
+
+						if (annotationsChanged(field, jsonCollumn))
+							return true
 					}
 				}
 			}
 			return false
+		}
+		
+		private fun entitiesChanged(context: Context, entities: List<ObjectClass>): Boolean {
+			var changed = false
+			entities.forEach { entity ->
+				entity.changed = entityChanged(context, entity)
+				if(!changed) {
+					changed = entity.changed
+				}
+			}
+			return changed
 		}
 		
 		private fun annotationsChanged(field: ObjectField, json: JSONColumn): Boolean {
@@ -80,25 +91,32 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
     override fun onCreate(db: SQLiteDatabase?) {
 		entities.forEach { entity ->
 			Log.i("TESTE", "CacheSmithOpenHelper.onCreate for " + entity.simpleName)
-			execCreateTable(db, entity, true)
+			execCreateTable(db, entity)
 		}
     }
 
 	override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
 		entities.forEach { entity ->
-			Log.i("TESTE", "CacheSmithOpenHelper.onUpgrade for " + entity.simpleName)
-	
-			val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
-	
-			execCloneTable(db, jsonTable.name)
-			// TODO insert data from origin table to clone table
-			execDropTable(db, jsonTable.name)
-	
-			execCreateTable(db, entity, true)
-	
-			// TODO insert data from clone table to new table
-			val cloneTableName = jsonTable.name.plus(CloneTableBuilder.TABLE_SUFIX)
-			execDropTable(db, cloneTableName)
+			if (entity.changed) {
+				Log.i("TESTE", "CacheSmithOpenHelper.onUpgrade for " + entity.simpleName)
+
+				if (tableNotExists(context, entity)) {
+					execCreateTable(db, entity)
+
+				} else {
+					val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
+
+					execCloneTable(db, jsonTable.name)
+					// TODO insert data from origin table to clone table
+					execDropTable(db, jsonTable.name)
+
+					execCreateTable(db, entity)
+
+					// TODO insert data from clone table to new table
+					val cloneTableName = jsonTable.name.plus(CloneTableBuilder.TABLE_SUFIX)
+					execDropTable(db, cloneTableName)
+				}
+			}
 		}
 
 		/*
@@ -113,27 +131,27 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 		 */
 	}
 
-	private fun execCreateTable(db: SQLiteDatabase?, entity: ObjectClass, saveRefBackup: Boolean) {
+	private fun execCreateTable(db: SQLiteDatabase?, entity: ObjectClass) {
 		val jsonTable = JSONTable()
 		val queryBuilder = CreateTableBuilder()
 
 		jsonTable.name = entity.tableName
 		queryBuilder.tableName = entity.tableName
 
-		entity.fields.forEach { field ->
+		entity.fields.forEach field@{ field ->
 			val columnObj = ColumnObject()
 			val jsonColumn = JSONColumn()
 
 			jsonColumn.field = field.name
 
-			columnObj.typeClass = field.type.clazz
-
-			val jsonAnnotation = JSONAnnotation()
-
 			columnObj.name = field.columnName
 			jsonColumn.name = columnObj.name
 
-			field.annotations.forEach {annotation ->
+			columnObj.typeClass = field.type.clazz
+			jsonColumn.type = field.type.name
+
+			field.annotations.forEach annotation@{ annotation ->
+				val jsonAnnotation = JSONAnnotation()
 
 				jsonAnnotation.name = annotation.annotationClass.simpleName!!
 
@@ -142,13 +160,15 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 						if (annotation.type != DataType.NONE) {
 							columnObj.typeName = annotation.type.value
 						}
-						jsonColumn.type = field.type.name
 					}
 					is Relationship -> {
 						if (!annotation.query.isBlank()) {
 							columnObj.foreignKeyQuery = annotation.query
 						} else {
-							if (annotation.type == RelationType.ONE_TO_ONE
+							if (annotation.type == RelationType.ONE_TO_MANY) {
+								return@field
+							}
+							else if (annotation.type == RelationType.ONE_TO_ONE
 									|| annotation.type == RelationType.MANY_TO_ONE) {
 
 								val foreignKey = DatabaseUtils.getForeignKeyObject(annotation, field.type.clazz)
@@ -177,12 +197,10 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 
 		val sql = queryBuilder.build()
 
-		if (saveRefBackup) {
-			PreferencesManager.saveTableJson(context, entity.qualifiedName, jsonTable)
-		}
-
 		Log.i("TESTE", sql)
 		Log.i("TESTE", jsonTable.toString())
+
+		PreferencesManager.saveTableJson(context, entity.qualifiedName, jsonTable)
 	}
 
 	private fun execCloneTable(db: SQLiteDatabase?, tableName: String) {
@@ -227,11 +245,11 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 				if (!manualVersion) {
 					if (newVersion < 0) {
 						newVersion = BASE_VERSION
-						PreferencesManager.saveVersion(context, newVersion)
 					}
-					else if (anyEntityChanged(context, entities)) {
+					else if (entitiesChanged(context, entities)) {
 						newVersion += INCREMENTAL
 					}
+					Log.i("TESTE", "New version: $newVersion")
 				}
 				else if (newVersion < 0) {
 					throw NoVersionException()

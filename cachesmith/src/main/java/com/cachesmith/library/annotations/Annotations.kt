@@ -78,6 +78,7 @@ annotation class NotNullable
 annotation class Relationship(val type: RelationType,
                               val targetTable: String = "",
                               val targetColumn: String = "",
+							  val targetColumnType: String = "",
                               val onUpdate: ActionType = ActionType.NO_ACTION,
                               val onDelete: ActionType = ActionType.NO_ACTION,
                               val query: String = "")

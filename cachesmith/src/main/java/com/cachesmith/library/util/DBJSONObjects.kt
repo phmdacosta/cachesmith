@@ -19,7 +19,12 @@ class JSONTable() {
 		rawJson = json
 	}
 	
-	constructor(json: String) : this(JSONObject(json))
+	constructor(json: String) : this() {
+		if (json.isBlank())
+			rawJson = JSONObject()
+		else
+			rawJson = JSONObject(json)
+	}
 	
 	var name: String
 		get() {
@@ -61,7 +66,10 @@ class JSONTable() {
 
 	fun listJsonColumns(): Array<JSONColumn> {
 		val listJsonColumns = mutableListOf<JSONColumn>()
-		for (i in 0..columnsJsonArray.length()) {
+		if (columnsJsonArray.length() <= 0)
+			columnsJsonArray = rawJson.getJSONArray(COLUMNS)
+
+		for (i in 0 until columnsJsonArray.length()) {
 			listJsonColumns.add(JSONColumn(columnsJsonArray.getJSONObject(i)))
 		}
 		return listJsonColumns.toTypedArray()

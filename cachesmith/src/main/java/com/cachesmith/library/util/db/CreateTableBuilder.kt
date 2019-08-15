@@ -26,6 +26,9 @@ open class CreateTableBuilder : QueryBuilder() {
 	override fun build(): String {
 		val query = StringBuffer()
 		query.append(SQLCommands.CREATE_TABLE.value)
+		query.append(SPACE)
+		query.append(tableName)
+		query.append(SPACE)
 		query.append(START_PARAM)
 		
 		val iterColumns = columnsList.iterator()
@@ -33,7 +36,13 @@ open class CreateTableBuilder : QueryBuilder() {
 			val column = iterColumns.next()
 			
 			query.append(column.name.plus(SPACE))
-			query.append(column.typeName.plus(SPACE))
+
+			if (column.isForeignKey) {
+				query.append(column.foreignKey.referenceColumnType)
+			} else {
+				query.append(column.typeName)
+			}
+			query.append(SPACE)
 			
 			if (column.isPrimaryKey) {
 				query.append(SQLCommands.PRIMARY_KEY.value)

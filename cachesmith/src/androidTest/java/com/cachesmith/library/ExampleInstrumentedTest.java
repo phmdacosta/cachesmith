@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("mobitsplaza.mobits.com.br.cachesmith.test", appContext.getPackageName());
+        assertEquals("com.cachesmith.library", appContext.getPackageName());
     }
 }

@@ -44,6 +44,24 @@ class ColumnObject @JvmOverloads constructor (var name: String = "") {
 			}
 		}
 	}
+
+	companion object {
+		@JvmStatic
+		fun getTypeByClass(typeClass: ObjectClass?): DataType {
+			if (typeClass != null) {
+				when {
+					typeClass.simpleName.contains("int", true) -> return DataType.INTEGER
+					typeClass.simpleName.contains("long", true) -> return DataType.INTEGER
+					typeClass.simpleName.contains("double", true) -> return DataType.REAL
+					typeClass.simpleName.contains("float", true) -> return DataType.REAL
+					typeClass.simpleName.contains("string", true) -> return DataType.TEXT
+					typeClass.simpleName.contains("char", true) -> return DataType.TEXT
+					typeClass.simpleName.contains("byte", true) -> return DataType.BLOB
+				}
+			}
+			return DataType.NONE
+		}
+	}
 	
 	var isUnique: Boolean = false
 	var isPrimaryKey: Boolean = false
@@ -68,19 +86,4 @@ class ColumnObject @JvmOverloads constructor (var name: String = "") {
 		}
 	
 	var foreignKeyQuery: String = ""
-	
-	fun getTypeByClass(typeClass: ObjectClass?): DataType {
-		if (typeClass != null) {
-			when {
-                typeClass.simpleName.contains("int", true) -> return DataType.INTEGER
-                typeClass.simpleName.contains("long", true) -> return DataType.INTEGER
-                typeClass.simpleName.contains("double", true) -> return DataType.REAL
-                typeClass.simpleName.contains("float", true) -> return DataType.REAL
-                typeClass.simpleName.contains("string", true) -> return DataType.TEXT
-                typeClass.simpleName.contains("char", true) -> return DataType.TEXT
-                typeClass.simpleName.contains("byte", true) -> return DataType.BLOB
-            }
-		}
-		return DataType.NONE
-	}
 }

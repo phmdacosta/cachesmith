@@ -122,13 +122,14 @@ object PreferencesManager {
         synchronized(this) {
             open(context).edit().also {
                 val iterator = modelNames.iterator()
+                var names = StringBuffer()
                 while (iterator.hasNext()) {
-                    var names = iterator.next()
+                    names.append(iterator.next())
                     if (iterator.hasNext()) {
-                        names = names.plus(";")
+                        names.append(";")
                     }
-                    it.putString(MODELS_KEY, names)
                 }
+                it.putString(MODELS_KEY, names.toString())
                 it.apply()
             }
         }

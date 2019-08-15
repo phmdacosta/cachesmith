@@ -6,7 +6,7 @@ import kotlin.reflect.KClass
 
 class ObjectType private constructor() {
 	
-	constructor(type: Type) : this() {
+	constructor(type: Class<*>) : this() {
 		java = type
 	}
 	
@@ -14,7 +14,7 @@ class ObjectType private constructor() {
 		kotlin = type
 	}
 	
-	var java: Type? = null
+	var java: Class<*>? = null
 	var kotlin: KType? = null
 	
 	val isJava: Boolean
@@ -26,7 +26,7 @@ class ObjectType private constructor() {
 	val name: String
 		get() {
 			if (isJava) {
-				return java!!.getTypeName()
+				return java!!.simpleName
 			} else {
 				if (kotlin!!.classifier!! is KClass<*>) {
 					return (kotlin!!.classifier!! as KClass<*>).simpleName!!
@@ -38,7 +38,7 @@ class ObjectType private constructor() {
 	val clazz: ObjectClass
 		get() {
 			if (isJava) {
-				return ObjectClass(java!!.javaClass)
+				return ObjectClass(java!!)
 			} else {
 				if (kotlin!!.classifier!! is KClass<*>) {
 					return ObjectClass(kotlin!!.classifier!! as KClass<*>)

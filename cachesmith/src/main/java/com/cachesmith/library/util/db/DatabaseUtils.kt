@@ -7,6 +7,7 @@ import com.cachesmith.library.annotations.PrimaryKey
 import com.cachesmith.library.util.db.models.ColumnObject
 import com.cachesmith.library.annotations.Column
 import com.cachesmith.library.util.DataType
+import com.cachesmith.library.util.ObjectField
 
 object DatabaseUtils {
 	fun getRelationalTableName(firstTableName: String, secondTableName: String): String {
@@ -44,20 +45,21 @@ object DatabaseUtils {
 	}
 	
 	fun getForeignKeyObject(annotation: Relationship, target: ObjectClass): ForeignKeyObject {
-		val foreignKey = ForeignKeyObject(annotation.targetTable, annotation.targetColumn)
+		val foreignKey = ForeignKeyObject(annotation.targetTable, annotation.targetColumn, annotation.targetColumnType)
 		foreignKey.onDeleteAction = annotation.onDelete
 		foreignKey.onUpdateAction = annotation.onUpdate
 			
-		if (!foreignKey.referenceTable.isBlank()) {
+		if (foreignKey.referenceTable.isBlank()) {
 			foreignKey.referenceTable = target.tableName
 		}
 		
-		if (!foreignKey.referenceColumn.isBlank()) {
+		if (foreignKey.referenceColumn.isBlank()) {
 			target.fields.forEach { field ->
 				field.annotations.forEach { annot ->
 					 when(annot) {
 						 is PrimaryKey -> {
 							 foreignKey.referenceColumn = field.columnName
+							 foreignKey.referenceColumnType = ColumnObject.getTypeByClass(field.type.clazz).value
 						 }
 					 }
 				}

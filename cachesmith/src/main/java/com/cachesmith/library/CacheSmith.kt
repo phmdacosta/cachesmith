@@ -118,10 +118,10 @@ interface CacheSmith {
     fun getDatabaseName(): String
 
 	/**
-	 * Add a mapped model to a list that will be used to create tables on call 
+	 * Add a mapped model to a list that will be used to create tables on call
 	 * of [initDatabase] function.
 	 * <p>
-	 * If no model is setted, the [initDatabase] function will not create a 
+	 * If no model is setted, the [initDatabase] function will not create a
 	 * single table. On the other hand, the table of the model will be created  
 	 * when it loads its [DataSource] object.
 	 * <p>
@@ -136,10 +136,10 @@ interface CacheSmith {
 	fun addModel(model: Class<*>)
 	
 	/**
-	 * Add a mapped model to a list that will be used to create tables on call 
+	 * Add a mapped model to a list that will be used to create tables on call
 	 * of [initDatabase] function.
 	 * <p>
-	 * If no model is setted, the [initDatabase] function will not create a 
+	 * If no model is setted, the [initDatabase] function will not create a
 	 * single table. On the other hand, the table of the model will be created  
 	 * when it loads its [DataSource] object.
 	 * <p>
@@ -155,10 +155,10 @@ interface CacheSmith {
 	fun addModel(model: KClass<*>)
 	
 	/**
-	 * Defines the list of mapped models that will be used to create tables on  
+	 * Defines the list of mapped models that will be used to create tables on
 	 * call of [initDatabase] function.
 	 * <p>
-	 * If no model is setted, the [initDatabase] function will not create a 
+	 * If no model is setted, the [initDatabase] function will not create a
 	 * single table. On the other hand, the table of the model will be created  
 	 * when it loads its [DataSource] object.
 	 * <p>
@@ -175,7 +175,7 @@ interface CacheSmith {
 	/**
 	 * Initiate tables creation in Database.
 	 * <p>
-	 * If no model is setted, the [initDatabase] function will not create a 
+	 * If no model is setted, the [initDatabase] function will not create a
 	 * single table. On the other hand, the table of the model will be created  
 	 * when it loads its [DataSource] object.
 	 * <p>
@@ -190,6 +190,7 @@ interface CacheSmith {
     companion object {
         @Volatile private var instance: CacheSmith? = null
 
+		@JvmStatic
         fun create(context: Context): CacheSmith {
             instance ?: synchronized(this) {
                 return CacheSmithBuilder.build(context)

@@ -20,6 +20,7 @@ class ObjectClass private constructor() {
 	
 	var javaClass: Class<*>? = null
 	var kotlinClass: KClass<*>? = null
+	var changed: Boolean = false
 	
 	val isJava: Boolean
 		get() = javaClass != null
@@ -87,5 +88,4 @@ class ObjectClass private constructor() {
 			}
 			return tableName
 		}
-	
 }
