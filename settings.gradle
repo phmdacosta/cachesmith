@@ -1,1 +1,1 @@
-include ':example', ':cachesmith'
+include ':example', ':cachesmith', ':javaexample'
