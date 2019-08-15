@@ -2,7 +2,7 @@ package com.cachesmith.example
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
-import com.cachesmith.example.models.TesteDataSource
+import com.cachesmith.example.dao.TesteDataSource
 import com.cachesmith.library.CacheSmith
 import org.junit.Before
 import org.junit.Rule
@@ -35,7 +35,7 @@ class TestCacheSmithHelper {
     @Test
     fun testOnCreateDataBase() {
 //        assert(0 == 0)
-        val dataSource = CacheSmith.build(context!!).load(TesteDataSource::class)
+        val dataSource = CacheSmith.create(context!!).load(TesteDataSource::class)
         assert(dataSource is TesteDataSource)
 //        val helper = CacheSmithOpenHelper.Builder(context!!, "test.db").buid()
 //        helper.onCreate(dbMock)
