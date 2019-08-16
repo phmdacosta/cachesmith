@@ -199,6 +199,8 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 
 		Log.i("TESTE", sql)
 		Log.i("TESTE", jsonTable.toString())
+		
+		db!!.execSQL(sql)
 
 		PreferencesManager.saveTableJson(context, entity.qualifiedName, jsonTable)
 	}
@@ -206,12 +208,14 @@ class CacheSmithOpenHelper private constructor(val context: Context, val name: S
 	private fun execCloneTable(db: SQLiteDatabase?, tableName: String) {
 		val queryBuilder = CloneTableBuilder(tableName)
 		Log.i("TESTE", queryBuilder.build())
+		db!!.execSQL(queryBuilder.build())
 	}
 
 	private fun execDropTable(db: SQLiteDatabase?, tableName: String) {
 		val queryBuilder = DropTableBuilder()
 		queryBuilder.tableName = tableName
 		Log.i("TESTE", queryBuilder.build())
+		db!!.execSQL(queryBuilder.build())
 	}
 
 	private fun createRelationalTable(db: SQLiteDatabase?, principal: ObjectClass, target: ObjectClass) {
