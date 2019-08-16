@@ -35,10 +35,10 @@ open class InsertBuilder(val tableName: String) : QueryBuilder() {
 			if (columnsIter.hasNext()) {
 				columnNames.append(SEPARATOR)
 				columnValues.append(SEPARATOR)
+			} else {
+				columnNames.append(SPACE)
+				columnValues.append(SPACE)
 			}
-			
-			columnNames.append(SPACE)
-			columnValues.append(SPACE)
 		}
 		
 		query.append(START_PARAM)

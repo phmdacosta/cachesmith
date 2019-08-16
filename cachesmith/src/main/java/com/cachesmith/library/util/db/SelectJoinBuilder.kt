@@ -6,7 +6,7 @@ import com.cachesmith.library.exceptions.SQLiteQueryException
 import com.cachesmith.library.util.db.models.ColumnObject
 import com.cachesmith.library.util.db.models.ForeignKeyObject
 
-open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType) : SelectBuilder(principal) {
+open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType) : SelectBuilder(principal.tableName) {
 	
 	companion object {
 		const val DOT = ".".plus(SPACE)
@@ -47,7 +47,7 @@ open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType)
 	}
 	
 	fun buildTables(query: StringBuffer) {
-		query.append(principal)
+		query.append(principal.tableName)
 		query.append(SEPARATOR)
 		query.append(SPACE)
 		
@@ -92,26 +92,6 @@ open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType)
 		}
 	}
 	
-	override fun buildFilters(query: StringBuffer) {
-		if (filters.isNotEmpty()) {
-			query.append(SQLCommands.WHERE.value)
-			val filtersIter = filters.iterator()
-			while(filtersIter.hasNext()) {
-				val filter = filtersIter.next()
-				
-				query.append(filter.key)
-				query.append(SPACE)
-				query.append(EQUALS)
-				query.append(filter.value)
-				query.append(SPACE)
-				
-				if (filtersIter.hasNext()) {
-					query.append(SQLCommands.AND.value)
-				}
-			}
-		}
-	}
-	
 	override fun build(): String {
 		val query = StringBuffer()
 		query.append(SQLCommands.SELECT.value)
@@ -119,7 +99,7 @@ open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType)
 		buildSelectColumns(query)
 		
 		query.append(SQLCommands.FROM.value)
-		query.append(entity.tableName)
+		query.append(principal.tableName)
 		query.append(SPACE)
 		
 		// Where statement

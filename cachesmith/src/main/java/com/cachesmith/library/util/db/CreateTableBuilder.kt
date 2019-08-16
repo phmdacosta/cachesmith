@@ -35,7 +35,8 @@ open class CreateTableBuilder : QueryBuilder() {
 		while (iterColumns.hasNext()) {
 			val column = iterColumns.next()
 			
-			query.append(column.name.plus(SPACE))
+			query.append(column.name)
+			query.append(SPACE)
 
 			if (column.isForeignKey) {
 				query.append(column.foreignKey.referenceColumnType)
@@ -76,13 +77,16 @@ open class CreateTableBuilder : QueryBuilder() {
 				query.append(SEPARATOR)			
 				query.append(SQLCommands.FOREIGN_KEY.value)
 				query.append(START_PARAM)
-				query.append(column.name.plus(SPACE))
+				query.append(column.name)
+				query.append(SPACE)
 				query.append(END_PARAM)
 				query.append(SQLCommands.REFERENCES.value)
 				query.append(SPACE)
 				query.append(column.foreignKey.referenceTable)
+				query.append(SPACE)
 				query.append(START_PARAM)
 				query.append(column.foreignKey.referenceColumn)
+				query.append(SPACE)
 				query.append(END_PARAM)
 			}
 		}
