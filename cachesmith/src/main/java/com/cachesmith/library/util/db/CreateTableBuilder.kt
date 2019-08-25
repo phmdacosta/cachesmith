@@ -49,19 +49,19 @@ open class CreateTableBuilder : QueryBuilder() {
 				query.append(SQLCommands.PRIMARY_KEY.value)
 				query.append(SPACE)
 			}
-			
-			if (column.isUnique) {
-				query.append(SQLCommands.UNIQUE.value)
-				query.append(SPACE)
-			}
-			
+
 			if (column.isAutoIncrement) {
 				query.append(SQLCommands.AUTO_INCREMENT.value)
 				query.append(SPACE)
 			}
-			
+
 			if (column.isNotNull) {
 				query.append(SQLCommands.NOT_NULL.value)
+				query.append(SPACE)
+			}
+			
+			if (column.isUnique) {
+				query.append(SQLCommands.UNIQUE.value)
 				query.append(SPACE)
 			}
 			

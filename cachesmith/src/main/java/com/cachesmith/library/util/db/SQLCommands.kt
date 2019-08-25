@@ -2,7 +2,7 @@ package com.cachesmith.library.util.db
 
 enum class SQLCommands(val value: String) {
 	SELECT("SELECT"),
-	DROP_TABLE("DRO TABLE"),
+	DROP_TABLE("DROP TABLE"),
 	INSERT_INTO("INSERT INTO"),
 	CREATE_TABLE("CREATE TABLE"),
 	ALTER_TABLE("ALTER TABLE"),
@@ -14,7 +14,7 @@ enum class SQLCommands(val value: String) {
 	AS("AS"),
 	PRIMARY_KEY("PRIMARY KEY"),
 	UNIQUE("UNIQUE"),
-	AUTO_INCREMENT("AUTO_INCREMENT"),
+	AUTO_INCREMENT("AUTOINCREMENT"),
 	FOREIGN_KEY("FOREIGN KEY"),
 	REFERENCES("REFERENCES"),
 	DELETE("DELETE"),
