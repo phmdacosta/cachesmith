@@ -25,8 +25,11 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
                     val model = ObjectClass(Class.forName(it.value))
 					models.add(model)
                 } catch (e: ClassNotFoundException) {
-                    Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
-                    throw e
+                    models.addAll(getModelList())
+                    if (models.isEmpty()) {
+                        Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
+                        throw e
+                    }
                 }
             }
         }
@@ -42,8 +45,11 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
                     val model = ObjectClass(Class.forName(it.value).kotlin)
 					models.add(model)
                 } catch (e: ClassNotFoundException) {
-                    Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
-                    throw e
+                    models.addAll(getModelList())
+                    if (models.isEmpty()) {
+                        Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
+                        throw e
+                    }
                 }
             }
         }
