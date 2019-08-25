@@ -13,11 +13,12 @@ open class InsertBuilder(val tableName: String) : QueryBuilder() {
 	val columns = mutableMapOf<String, Any>()
 	
 	fun addParameter(columnName: String, value: Any) {
+		var finalValue = value
 		if (value is String) {
-			val value = "'$value'"
+			finalValue = "'$value'"
 		}
 
-		columns.put(columnName, value)
+		columns.put(columnName, finalValue)
 	}
 	
 	override fun build(): String {
