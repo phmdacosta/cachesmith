@@ -95,10 +95,12 @@ open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType)
 	override fun build(): String {
 		val query = StringBuffer()
 		query.append(SQLCommands.SELECT.value)
+		query.append(SPACE)
 		
 		buildSelectColumns(query)
 		
 		query.append(SQLCommands.FROM.value)
+		query.append(SPACE)
 		query.append(principal.tableName)
 		query.append(SPACE)
 		

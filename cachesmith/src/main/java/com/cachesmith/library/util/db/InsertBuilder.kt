@@ -1,5 +1,6 @@
 package com.cachesmith.library.util.db
 
+import com.cachesmith.library.exceptions.SQLiteQueryException
 import com.cachesmith.library.util.ObjectClass
 import kotlin.reflect.KClass
 
@@ -12,13 +13,18 @@ open class InsertBuilder(val tableName: String) : QueryBuilder() {
 	val columns = mutableMapOf<String, Any>()
 	
 	fun addParameter(columnName: String, value: Any) {
-		columns.put(columnName, value);
+		if (value is String) {
+			val value = "'$value'"
+		}
+
+		columns.put(columnName, value)
 	}
 	
 	override fun build(): String {
 		
 		val query = StringBuffer()
 		query.append(SQLCommands.INSERT_INTO.value)
+		query.append(SPACE)
 		query.append(tableName)
 		query.append(SPACE)
 		

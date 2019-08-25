@@ -43,10 +43,12 @@ open class SelectBuilder(val tableName: String) : FilterBuilder()  {
 	override fun build(): String {
 		val query = StringBuffer()
 		query.append(SQLCommands.SELECT.value)
+		query.append(SPACE)
 		
 		buildSelectColumns(query)
 		
 		query.append(SQLCommands.FROM.value)
+		query.append(SPACE)
 		query.append(tableName)
 		query.append(SPACE)
 		
