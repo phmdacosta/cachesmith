@@ -20,12 +20,12 @@ To use the library, just call it's creator and loads your data source like below
 
 Java:
 ```
-MyDataSource myDataSource = CacheSmith.create(context).load(MyDataSource.class);
+MyDataSource myDataSource = CacheSmith.Builder.build(context).load(MyDataSource.class);
 ```
 
 Kotlin:
 ```
-val myDataSource = CacheSmith.create(context).load(MyDataSource::class)
+val myDataSource = CacheSmith.build(context).load(MyDataSource::class)
 ```
 
 With this your data source will be ready with database created and upgraded to freely manage the data.
@@ -40,7 +40,7 @@ Put it in your Application class:
 Java:
 
 ```
-CacheSmith cacheSmith = CacheSmith.create(context);
+CacheSmith cacheSmith = CacheSmith.Builder.build(context);
 cacheSmith.setManualVersion(true); // This will tell library that database's version will be set manually
 cacheSmith.setVersion(1); // Set your current version
 cacheSmith.setDatabaseName("my_db_name"); // Set your database name
@@ -52,7 +52,7 @@ cacheSmith.initDatabase(); // Initiate your database's creation
 Kotlin:
 
 ```
-val cacheSmith = CacheSmith.create(context)
+val cacheSmith = CacheSmith.build(context)
 cacheSmith.setManualVersion(true) // This will tell library that database's version will be set manually
 cacheSmith.setVersion(1) // Set your current version
 cacheSmith.setDatabaseName("my_db_name") // Set your database name
