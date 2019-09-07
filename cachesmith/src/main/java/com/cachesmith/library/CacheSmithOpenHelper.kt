@@ -13,7 +13,7 @@ import com.cachesmith.library.util.db.DropTableBuilder
 import com.cachesmith.library.util.db.models.ColumnObject
 import com.cachesmith.library.util.db.DatabaseUtils
 
-class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, val entities: List<ObjectClass>) :
+internal class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, val entities: List<ObjectClass>) :
 		SQLiteOpenHelper(context, name, null, version) {
 
 	init {

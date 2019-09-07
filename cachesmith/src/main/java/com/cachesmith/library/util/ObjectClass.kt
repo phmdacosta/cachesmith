@@ -5,7 +5,7 @@ import java.lang.reflect.Field
 import kotlin.reflect.KProperty
 import com.cachesmith.library.annotations.Table
 
-class ObjectClass private constructor() {
+internal class ObjectClass private constructor() {
 	
 	constructor(clazz: Class<*>) : this() {
 		javaClass = clazz

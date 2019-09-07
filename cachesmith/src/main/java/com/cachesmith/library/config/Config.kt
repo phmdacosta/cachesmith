@@ -1,6 +1,6 @@
 package com.cachesmith.library.config
 
-object Config {
+internal object Config {
     const val DATA_BASE_DEFAULT_NAME = "cache_smith.db"
 	const val SHARED_PREFERENCES_NAME = "cache-smith-shared-pref"
 	const val DB_TABLES_KEY = "cache-smith-db-tables-key"

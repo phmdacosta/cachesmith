@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 import com.cachesmith.library.util.ObjectClass
 
-class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
+internal class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
 
     companion object {
         fun build(context: Context): CacheSmith {
@@ -37,6 +37,7 @@ class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
         return dataSource.getConstructor(SQLiteOpenHelper::class.java).newInstance(helper) as T
     }
 
+    @JvmSynthetic
     override fun <T : DataSource> load(dataSource: KClass<T>): T {
 		val models = mutableListOf<ObjectClass>()
         dataSource.annotations.forEach {

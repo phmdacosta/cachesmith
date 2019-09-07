@@ -1,15 +1,14 @@
 package com.cachesmith.library.util
 
-import java.lang.reflect.Type
 import kotlin.reflect.KType
 import kotlin.reflect.KClass
 
-class ObjectType private constructor() {
+internal class ObjectType private constructor() {
 	
 	constructor(type: Class<*>) : this() {
 		java = type
 	}
-	
+
 	constructor(type: KType) : this() {
 		kotlin = type
 	}

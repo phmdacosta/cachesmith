@@ -12,7 +12,7 @@ import com.cachesmith.library.annotations.Relationship
 import com.cachesmith.library.util.RelationType
 import com.cachesmith.library.util.db.DatabaseUtils
 
-class ColumnObject @JvmOverloads constructor (var name: String = "") {
+internal class ColumnObject @JvmOverloads constructor (var name: String = "") {
 	
 	constructor (field: ObjectField) : this(field.columnName) {
 		field.annotations.forEach { annotation ->

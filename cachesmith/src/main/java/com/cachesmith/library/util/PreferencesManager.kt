@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.cachesmith.library.config.Config
 
-object PreferencesManager {
+internal object PreferencesManager {
 
     private const val SUFIX_TABLE = "_Table"
     private const val MODELS_KEY = "modelsKey"

@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.cachesmith.library.exceptions.NoVersionException
 import com.cachesmith.library.util.ObjectClass
 
-object CacheSmithHelper {
+internal object CacheSmithHelper {
 
     @Volatile private var instance: SQLiteOpenHelper? = null
 
