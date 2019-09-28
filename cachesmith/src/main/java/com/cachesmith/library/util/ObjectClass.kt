@@ -60,9 +60,9 @@ internal class ObjectClass private constructor() {
 					listFields.add(generalField)
 				}
 			} else {
-				kotlinClass!!.members.forEach { memeber ->
-					if (memeber is KProperty) {
-						val generalField = ObjectField(memeber)
+				kotlinClass!!.members.forEach { member ->
+					if (member is KProperty) {
+						val generalField = ObjectField(member)
 						listFields.add(generalField)
 					}
 				}
