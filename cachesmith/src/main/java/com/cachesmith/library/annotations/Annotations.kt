@@ -93,7 +93,7 @@ object AnnotationValidator {
 		try {
 			val annotationPackage = annotation.annotationClass.qualifiedName!!.removeSuffix(".".plus(annotation.annotationClass.simpleName!!))
 
-			return this.javaClass.`package`.name == annotationPackage
+			return this.javaClass.`package`!!.name == annotationPackage
 		} catch (ignore: Exception) {
 		}
 
