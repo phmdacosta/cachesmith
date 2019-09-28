@@ -118,17 +118,6 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 				}
 			}
 		}
-
-		/*
- 		BEGIN TRANSACTION;
-		CREATE TEMPORARY TABLE t1_backup(a,b);
-		INSERT INTO t1_backup SELECT a,b FROM t1;
-		DROP TABLE t1;
-		CREATE TABLE t1(a,b);
-		INSERT INTO t1 SELECT a,b FROM t1_backup;
-		DROP TABLE t1_backup;
-		COMMIT;
-		 */
 	}
 
 	private fun execCreateTable(db: SQLiteDatabase?, entity: ObjectClass) {
