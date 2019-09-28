@@ -15,7 +15,7 @@ abstract class FilterBuilder : QueryBuilder() {
 		if (columnName.contains("'"))
 			return false
 		
-		val sqlCommands = enumValues<SQLCommands>();
+		val sqlCommands = enumValues<SQLCommands>()
 		sqlCommands.forEach {
 			if (columnName.contains(it.value))
 				return false
@@ -50,7 +50,7 @@ abstract class FilterBuilder : QueryBuilder() {
 	}
 	
 	fun addFilterEquals(columnName: String, value: String) {
-		if (isFilterColumnValid(columnName) || value.contains("'"))
+		if (!isFilterColumnValid(columnName) || value.contains("'"))
 			throw SQLiteQueryException(ERROR_MSG_FILTER)
 		
 		enumValues<SQLCommands>().forEach {
@@ -64,28 +64,28 @@ abstract class FilterBuilder : QueryBuilder() {
 	}
 	
 	fun addFilterEquals(columnName: String, value: Char) {
-		if (isFilterColumnValid(columnName))
+		if (!isFilterColumnValid(columnName))
 			throw SQLiteQueryException(ERROR_MSG_FILTER)
 		
 		filters.add(Filter(columnName, Character.toString(value), false, SQLCommands.AND.value))
 	}
 	
 	fun addFilterEquals(columnName: String, value: Int) {
-		if (isFilterColumnValid(columnName))
+		if (!isFilterColumnValid(columnName))
 			throw SQLiteQueryException(ERROR_MSG_FILTER)
 		
 		filters.add(Filter(columnName, value.toString(), false, SQLCommands.AND.value))
 	}
 	
 	fun addFilterEquals(columnName: String, value: Double) {
-		if (isFilterColumnValid(columnName))
+		if (!isFilterColumnValid(columnName))
 			throw SQLiteQueryException(ERROR_MSG_FILTER)
 		
 		filters.add(Filter(columnName, value.toString(), false, SQLCommands.AND.value))
 	}
 	
 	fun addFilterEquals(columnName: String, value: Float) {
-		if (isFilterColumnValid(columnName))
+		if (!isFilterColumnValid(columnName))
 			throw SQLiteQueryException(ERROR_MSG_FILTER)
 		
 		filters.add(Filter(columnName, value.toString(), false, SQLCommands.AND.value))

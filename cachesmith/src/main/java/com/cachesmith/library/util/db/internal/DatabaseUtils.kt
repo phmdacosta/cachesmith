@@ -1,4 +1,4 @@
-package com.cachesmith.library.util.db
+package com.cachesmith.library.util.db.internal
 
 import com.cachesmith.library.annotations.Relationship
 import com.cachesmith.library.util.ObjectClass
@@ -7,9 +7,8 @@ import com.cachesmith.library.annotations.PrimaryKey
 import com.cachesmith.library.util.db.models.ColumnObject
 import com.cachesmith.library.annotations.Column
 import com.cachesmith.library.util.DataType
-import com.cachesmith.library.util.ObjectField
 
-object DatabaseUtils {
+internal object DatabaseUtils {
 	fun getRelationalTableName(firstTableName: String, secondTableName: String): String {
 		val prefxTable = "rel_"
 		val firstName = firstTableName.substring(0, 4)

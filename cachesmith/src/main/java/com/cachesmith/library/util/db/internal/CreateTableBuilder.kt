@@ -1,44 +1,28 @@
-package com.cachesmith.library.util.db
+package com.cachesmith.library.util.db.internal
 
-import com.cachesmith.library.annotations.PrimaryKey
 import com.cachesmith.library.util.db.QueryBuilder
 import com.cachesmith.library.util.db.SQLCommands
 import com.cachesmith.library.util.db.models.ColumnObject
-import com.cachesmith.library.util.db.models.ForeignKeyObject
 
-open class CreateTableBuilder(var tableName: String) : QueryBuilder() {
+internal open class CreateTableBuilder : QueryBuilder() {
 
 	companion object {
 		const val SEPARATOR = ",".plus(SPACE)
 	}
 	
+	var tableName = ""
+		set(value) {
+			field = value.plus(SPACE)
+		}
+	
 	private val columnsList = mutableListOf<ColumnObject>()
 	private val foreignKeysList = mutableListOf<ColumnObject>()
-
-	@JvmOverloads
-	fun addColumn(name: String, type: String,
-				  primaryKey: Boolean = false,
-				  autoIncrement: Boolean = false,
-				  notNull: Boolean = false,
-				  unique: Boolean = false) {
-		val column = ColumnObject()
-		column.name = name
-		column.typeName = type
-		column.isPrimaryKey = primaryKey
-		column.isAutoIncrement = autoIncrement
-		column.isNotNull = notNull
-		column.isUnique = unique
+	
+	fun addColumn(column: ColumnObject) {
+		if (column.isForeignKey) {
+			foreignKeysList.add(column)
+		}
 		columnsList.add(column)
-	}
-
-	fun addForeignKey(name: String, type: String,
-					  referenceTable: String,
-					  referenceColumn: String) {
-		val column = ColumnObject()
-		column.name = name
-		column.foreignKey = ForeignKeyObject(referenceTable, referenceColumn, type)
-		columnsList.add(column)
-		foreignKeysList.add(column)
 	}
 	
 	override fun build(): String {
@@ -87,7 +71,7 @@ open class CreateTableBuilder(var tableName: String) : QueryBuilder() {
 				query.append(SEPARATOR)
 			}
 		}
-		
+
 		foreignKeysList.forEach { column ->
 			if (!column.foreignKeyQuery.isBlank()) {
 				query.append(column.foreignKeyQuery)

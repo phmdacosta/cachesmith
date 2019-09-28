@@ -8,10 +8,10 @@ import com.cachesmith.library.annotations.*
 import com.cachesmith.library.exceptions.NoVersionException
 import com.cachesmith.library.util.*
 import com.cachesmith.library.util.db.CloneTableBuilder
-import com.cachesmith.library.util.db.CreateTableBuilder
+import com.cachesmith.library.util.db.internal.CreateTableBuilder
 import com.cachesmith.library.util.db.DropTableBuilder
 import com.cachesmith.library.util.db.models.ColumnObject
-import com.cachesmith.library.util.db.DatabaseUtils
+import com.cachesmith.library.util.db.internal.DatabaseUtils
 
 internal class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, val entities: List<ObjectClass>) :
 		SQLiteOpenHelper(context, name, null, version) {
@@ -212,8 +212,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 	}
 
 	private fun execDropTable(db: SQLiteDatabase?, tableName: String) {
-		val queryBuilder = DropTableBuilder()
-		queryBuilder.tableName = tableName
+		val queryBuilder = DropTableBuilder(tableName)
 		Log.i("TESTE", queryBuilder.build())
 		db!!.execSQL(queryBuilder.build())
 	}

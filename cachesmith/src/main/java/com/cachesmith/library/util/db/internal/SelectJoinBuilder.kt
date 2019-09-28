@@ -1,12 +1,14 @@
-package com.cachesmith.library.util.db
+package com.cachesmith.library.util.db.internal
 
 import com.cachesmith.library.util.ObjectClass
 import com.cachesmith.library.util.JoinType
 import com.cachesmith.library.exceptions.SQLiteQueryException
+import com.cachesmith.library.util.db.SQLCommands
+import com.cachesmith.library.util.db.SelectBuilder
 import com.cachesmith.library.util.db.models.ColumnObject
 import com.cachesmith.library.util.db.models.ForeignKeyObject
 
-open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType) : SelectBuilder(principal.tableName) {
+internal open class SelectJoinBuilder(val principal: ObjectClass, val joiTtype: JoinType) : SelectBuilder(principal.tableName) {
 	
 	companion object {
 		const val DOT = ".".plus(SPACE)

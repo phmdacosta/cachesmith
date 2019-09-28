@@ -10,7 +10,7 @@ import com.cachesmith.library.annotations.AutoIncrement
 import com.cachesmith.library.annotations.NotNullable
 import com.cachesmith.library.annotations.Relationship
 import com.cachesmith.library.util.RelationType
-import com.cachesmith.library.util.db.DatabaseUtils
+import com.cachesmith.library.util.db.internal.DatabaseUtils
 
 internal class ColumnObject @JvmOverloads constructor (var name: String = "") {
 	
