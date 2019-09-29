@@ -1,6 +1,5 @@
 package com.cachesmith.library.java;
 
-import com.cachesmith.library.util.db.internal.CloneTableBuilder;
 import com.cachesmith.library.util.db.CreateTableBuilder;
 import com.cachesmith.library.util.db.DeleteBuilder;
 import com.cachesmith.library.util.db.DropTableBuilder;
@@ -8,13 +7,6 @@ import com.cachesmith.library.util.db.DropTableBuilder;
 import org.junit.Test;
 
 public class QueryBuildersTest {
-
-    @Test
-    public void cloneTableSQLTest() {
-        String expected = "CREATE TABLE my_table_backup AS SELECT * FROM my_table WHERE 0";
-        CloneTableBuilder sql = new CloneTableBuilder("my_table");
-        assert expected.equals(sql.build());
-    }
 
     @Test
     public void createTableSQLTest() {
