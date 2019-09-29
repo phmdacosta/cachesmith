@@ -5,7 +5,7 @@ SQLite ORM solution and database's management for Android.
 
 ## Version
 
-v0.0.1
+v0.1.0-alfa
 
 ## Getting started
 
