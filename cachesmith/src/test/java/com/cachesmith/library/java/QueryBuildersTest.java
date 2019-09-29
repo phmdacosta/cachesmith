@@ -1,6 +1,6 @@
 package com.cachesmith.library.java;
 
-import com.cachesmith.library.util.db.CloneTableBuilder;
+import com.cachesmith.library.util.db.internal.CloneTableBuilder;
 import com.cachesmith.library.util.db.CreateTableBuilder;
 import com.cachesmith.library.util.db.DeleteBuilder;
 import com.cachesmith.library.util.db.DropTableBuilder;

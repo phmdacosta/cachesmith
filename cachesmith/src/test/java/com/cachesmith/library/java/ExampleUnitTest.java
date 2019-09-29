@@ -1,4 +1,4 @@
-package com.cachesmith.library;
+package com.cachesmith.library.java;
 
 import org.junit.Test;
 
