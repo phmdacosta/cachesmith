@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_database_null">Could not get database</string>
+    <string name="error_upgrade_database">Error during database upgrade</string>
+</resources>

@@ -7,7 +7,7 @@ import android.util.Log
 import com.cachesmith.library.annotations.*
 import com.cachesmith.library.exceptions.NoVersionException
 import com.cachesmith.library.util.*
-import com.cachesmith.library.util.db.CloneTableBuilder
+import com.cachesmith.library.util.db.internal.CloneTableBuilder
 import com.cachesmith.library.util.db.internal.CreateTableBuilder
 import com.cachesmith.library.util.db.DropTableBuilder
 import com.cachesmith.library.util.db.models.ColumnObject
@@ -24,6 +24,9 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 	}
 
 	companion object {
+		private const val TAG = "CacheSmithHelper"
+		private const val TABLE_SUFFIX = "_backup"
+
 		private fun tableNotExists(context: Context, entity: ObjectClass): Boolean {
 			val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
 			return jsonTable.isEmpty()
@@ -89,32 +92,47 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 	}
 	
     override fun onCreate(db: SQLiteDatabase?) {
+		if (db == null) {
+			Log.e(TAG, context.getString(R.string.error_database_null))
+			return
+		}
+
 		entities.forEach { entity ->
-			Log.i("TESTE", "CacheSmithOpenHelper.onCreate for " + entity.simpleName)
 			execCreateTable(db, entity)
 		}
     }
 
 	override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+		if (db == null) {
+			Log.e(TAG, context.getString(R.string.error_database_null))
+			return
+		}
+
 		entities.forEach { entity ->
 			if (entity.changed) {
-				Log.i("TESTE", "CacheSmithOpenHelper.onUpgrade for " + entity.simpleName)
-
 				if (tableNotExists(context, entity)) {
 					execCreateTable(db, entity)
 
 				} else {
 					val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
 
-					execCloneTable(db, jsonTable.name)
-					// TODO insert data from origin table to clone table
-					execDropTable(db, jsonTable.name)
+					db.beginTransaction()
+					try {
+						val cloneTableName = jsonTable.name.plus(TABLE_SUFFIX)
 
-					execCreateTable(db, entity)
+						execCloneTable(db, jsonTable.name, cloneTableName)
+						execDropTable(db, jsonTable.name)
 
-					// TODO insert data from clone table to new table
-					val cloneTableName = jsonTable.name.plus(CloneTableBuilder.TABLE_SUFIX)
-					execDropTable(db, cloneTableName)
+						execCloneTable(db, cloneTableName, jsonTable.name)
+						execDropTable(db, cloneTableName)
+
+						db.setTransactionSuccessful()
+					} catch (e: Exception) {
+						Log.e(TAG, context.getString(R.string.error_upgrade_database))
+						e.printStackTrace()
+					} finally {
+					    db.endTransaction()
+					}
 				}
 			}
 		}
@@ -185,24 +203,19 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		}
 
 		val sql = queryBuilder.build()
-
-		Log.i("TESTE", sql)
-		Log.i("TESTE", jsonTable.toString())
 		
 		db!!.execSQL(sql)
 
 		PreferencesManager.saveTableJson(context, entity.qualifiedName, jsonTable)
 	}
 
-	private fun execCloneTable(db: SQLiteDatabase?, tableName: String) {
-		val queryBuilder = CloneTableBuilder(tableName)
-		Log.i("TESTE", queryBuilder.build())
+	private fun execCloneTable(db: SQLiteDatabase?, tableName: String, newTableName: String) {
+		val queryBuilder = CloneTableBuilder(tableName, newTableName)
 		db!!.execSQL(queryBuilder.build())
 	}
 
 	private fun execDropTable(db: SQLiteDatabase?, tableName: String) {
 		val queryBuilder = DropTableBuilder(tableName)
-		Log.i("TESTE", queryBuilder.build())
 		db!!.execSQL(queryBuilder.build())
 	}
 
