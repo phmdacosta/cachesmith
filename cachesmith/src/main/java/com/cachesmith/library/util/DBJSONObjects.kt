@@ -111,7 +111,7 @@ class JSONColumn() {
 		const val NAME = "name"
 		const val FIELD = "field"
 		const val TYPE = "type"
-		const val ANNOTATIONS = "name"
+		const val ANNOTATIONS = "annotations"
 	}
 
 	constructor(json: JSONObject) : this() {
@@ -170,7 +170,10 @@ class JSONColumn() {
 
 	fun listAnnotationsJson(): Array<JSONAnnotation> {
 		val listJsonAnnots = mutableListOf<JSONAnnotation>()
-		for (i in 0..annotJsonArray.length()) {
+		if (annotJsonArray.length() <= 0)
+			annotJsonArray = rawJson.getJSONArray(ANNOTATIONS)
+
+		for (i in 0 until annotJsonArray.length()) {
 			listJsonAnnots.add(JSONAnnotation(annotJsonArray.getJSONObject(i)))
 		}
 		return listJsonAnnots.toTypedArray()

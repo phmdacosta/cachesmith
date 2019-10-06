@@ -52,10 +52,12 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 							if (field.name != jsonCollumn.name) return true
 						}
 						else {
-							if (columnAnnot.name.isBlank() && field.name != jsonCollumn.name)
+							if (columnAnnot.name.isBlank()) {
+								if (field.name != jsonCollumn.name)
+									return true
+							} else if (columnAnnot.name != jsonCollumn.name) {
 								return true
-							else if (columnAnnot.name != jsonCollumn.name)
-								return true
+							}
 						}
 
 						if (field.type.name != jsonCollumn.type)
