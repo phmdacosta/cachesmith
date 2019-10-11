@@ -190,6 +190,11 @@ interface CacheSmith {
     companion object Builder {
         @Volatile private var instance: CacheSmith? = null
 
+		/**
+		 * Builds the class instance.
+		 * @property Context context of the application 
+		 * @return class instance. 
+		 */
         fun build(context: Context): CacheSmith {
             instance ?: synchronized(this) {
                 return CacheSmithBuilder.build(context)
