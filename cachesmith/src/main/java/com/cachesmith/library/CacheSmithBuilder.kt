@@ -8,6 +8,7 @@ import com.cachesmith.library.util.PreferencesManager
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 import com.cachesmith.library.util.ObjectClass
+import kotlin.reflect.jvm.internal.impl.resolve.jvm.JvmClassName
 
 internal class CacheSmithBuilder private constructor(val context: Context) : CacheSmith {
 
@@ -26,10 +27,7 @@ internal class CacheSmithBuilder private constructor(val context: Context) : Cac
 					models.add(model)
                 } catch (e: ClassNotFoundException) {
                     models.addAll(getModelList())
-                    if (models.isEmpty()) {
-                        Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
-                        throw e
-                    }
+                    handleClassNotFoundException(e, it.value, models)
                 }
             }
         }
@@ -47,10 +45,7 @@ internal class CacheSmithBuilder private constructor(val context: Context) : Cac
 					models.add(model)
                 } catch (e: ClassNotFoundException) {
                     models.addAll(getModelList())
-                    if (models.isEmpty()) {
-                        Log.e("CacheSmith", "Could not find class ${it.value}. Please check if it's defined correctly with package and class name.")
-                        throw e
-                    }
+                    handleClassNotFoundException(e, it.value, models)
                 }
             }
         }
@@ -123,4 +118,14 @@ internal class CacheSmithBuilder private constructor(val context: Context) : Cac
 		}
 		return result
 	}
+
+    private fun handleClassNotFoundException(e: ClassNotFoundException, className: String,
+                                             models: MutableList<*>) {
+        Log.e(context.getString(R.string.app_name),
+                context.getString(R.string.error_load_model, className))
+        // If there aren't any model, throws the exception
+        if (models.isEmpty()) {
+            throw e
+        }
+    }
 }

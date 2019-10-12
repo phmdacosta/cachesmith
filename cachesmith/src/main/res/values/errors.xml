@@ -2,4 +2,5 @@
 <resources>
     <string name="error_database_null">Could not get database</string>
     <string name="error_upgrade_database">Error during database upgrade</string>
+    <string name="error_load_model">Could not find class %s. Please check if it\'s defined correctly with package and class name.</string>
 </resources>

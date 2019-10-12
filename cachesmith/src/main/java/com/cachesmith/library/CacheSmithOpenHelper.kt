@@ -215,6 +215,8 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		val jsonTable = JSONTable()
 		val queryBuilder = CreateTableBuilder()
 
+		Log.d(context.getString(R.string.app_name), context.getString(R.string.debug_log_create_table, entity.tableName))
+
 		/*
  		 * Getting table name.
  		 * If the annotation Table is setted on this model with a table name,
@@ -284,6 +286,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 
 		// Executing query to create table.
 		val sql = queryBuilder.build()
+		Log.d(context.getString(R.string.app_name), sql)
 		db!!.execSQL(sql)
 
 		// Saving model's structure in a JSON file to check changes on future.
