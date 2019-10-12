@@ -75,6 +75,18 @@ class JSONTable() {
 		return listJsonColumns.toTypedArray()
 	}
 
+	fun containsColumn(columnName: String): Boolean {
+		if (columnsJsonArray.length() <= 0)
+			columnsJsonArray = rawJson.getJSONArray(COLUMNS)
+		for (i in 0 until columnsJsonArray.length()) {
+			val jsonColumn = JSONColumn(columnsJsonArray.getJSONObject(i))
+			if (jsonColumn.name == columnName) {
+				return true
+			}
+		}
+		return false
+	}
+
 	override fun toString(): String {
 		return rawJson.toString()
 	}

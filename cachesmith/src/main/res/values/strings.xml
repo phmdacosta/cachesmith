@@ -2,5 +2,8 @@
     <string name="app_name">CacheSmith</string>
 
     <!-- Debug messages -->
-    <string name="debug_log_create_table">Creating table: %s</string>
+    <string name="debug_log_create_table">Creating table %s</string>
+    <string name="debug_log_rename_table">Renaming table %s to %s</string>
+    <string name="debug_log_drop_table">Dropping table %s</string>
+    <string name="debug_log_copy_table">Coping data from table %s to %s</string>
 </resources>

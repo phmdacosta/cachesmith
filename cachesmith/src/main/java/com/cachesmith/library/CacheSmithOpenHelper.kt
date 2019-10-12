@@ -7,11 +7,14 @@ import android.util.Log
 import com.cachesmith.library.annotations.*
 import com.cachesmith.library.exceptions.NoVersionException
 import com.cachesmith.library.util.*
-import com.cachesmith.library.util.db.internal.CloneTableBuilder
-import com.cachesmith.library.util.db.internal.CreateTableBuilder
 import com.cachesmith.library.util.db.DropTableBuilder
-import com.cachesmith.library.util.db.models.ColumnObject
+import com.cachesmith.library.util.db.internal.*
+import com.cachesmith.library.util.db.internal.CopyTableDataBuilder
+import com.cachesmith.library.util.db.internal.CreateTableBuilder
 import com.cachesmith.library.util.db.internal.DatabaseUtils
+import com.cachesmith.library.util.db.internal.RenameTableBuilder
+import com.cachesmith.library.util.db.models.ColumnObject
+import java.lang.UnsupportedOperationException
 
 internal class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, val entities: List<ObjectClass>) :
 		SQLiteOpenHelper(context, name, null, version) {
@@ -67,9 +70,14 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 			if (entity.tableName != jsonTable.name)
 				return true
 
-			// Check if number of columns changed
-			if (jsonTable.columnQuantity != entity.fields.size)
+			/*
+			* Check if number of columns changed.
+			* Column dropping are not supported by SQLite.
+			* */
+			if (jsonTable.columnQuantity < entity.fields.size)
 				return true
+			else if (jsonTable.columnQuantity > entity.fields.size)
+				throw UnsupportedOperationException(context.getString(R.string.error_drop_column_not_supported))
 
 			// Check changes in each field
 			entity.fields.forEach { field ->
@@ -93,13 +101,13 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 							}
 						}
 
-						// Check type defined in annotation.
-						if (field.type.name != jsonCollumn.type)
+						// Check if any bannotation was added or removed.
+						if (annotationsChanged(context, field, jsonCollumn))
 							return true
 
-						// Check if any bannotation was added or removed.
-						if (annotationsChanged(field, jsonCollumn))
-							return true
+						// Type changes are not supported by SQLite
+						if (field.type.name != jsonCollumn.type)
+							throw UnsupportedOperationException(context.getString(R.string.error_type_change_not_supported))
 					}
 				}
 			}
@@ -139,8 +147,15 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		 * @return true if the annotations in a model are different from earlier,
 		 *		   false otherwise. 
 		 */
-		private fun annotationsChanged(field: ObjectField, json: JSONColumn): Boolean {
+		private fun annotationsChanged(context: Context, field: ObjectField, json: JSONColumn): Boolean {
 			field.annotations.forEach { fieldAnnot ->
+				// Type changes are not supported by SQLite
+				if (fieldAnnot is Column
+						&& fieldAnnot.type != DataType.NONE
+						&& fieldAnnot.type.value != json.type) {
+					throw UnsupportedOperationException(context.getString(R.string.error_type_change_not_supported))
+				}
+
 				val jsonAnnotation = JSONAnnotation()
 				jsonAnnotation.name = fieldAnnot.annotationClass.simpleName!!
 				if (!json.listAnnotationsJson().contains(jsonAnnotation))
@@ -160,7 +175,9 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		}
 
 		entities.forEach { entity ->
-			execCreateTable(db, entity)
+			val jsonTable = execCreateTable(db, entity)
+			// Saving model's structure in a JSON file to check changes on future.
+            PreferencesManager.saveTableJson(context, entity.qualifiedName, jsonTable)
 		}
     }
 
@@ -179,19 +196,26 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 					execCreateTable(db, entity)
 
 				} else {
-					val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
+					val oldJsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
 
 					db.beginTransaction()
 					try {
-						val cloneTableName = jsonTable.name.plus(TABLE_SUFFIX)
+						val oldTableName = oldJsonTable.name.plus(TABLE_SUFFIX)
 
-						execCloneTable(db, jsonTable.name, cloneTableName)
-						execDropTable(db, jsonTable.name)
+						// Rename the old table
+                        execRenameTable(db, oldJsonTable.name, oldTableName)
 
-						execCloneTable(db, cloneTableName, jsonTable.name)
-						execDropTable(db, cloneTableName)
+						// Create the new table
+						val newJsonTable = execCreateTable(db, entity)
+
+						// Coping data to the new table and drop the old one
+						execCopyTable(db, oldJsonTable, entity)
+						execDropTable(db, oldTableName)
 
 						db.setTransactionSuccessful()
+
+						// Saving model's structure in a JSON file to check changes on future.
+						PreferencesManager.saveTableJson(context, entity.qualifiedName, newJsonTable)
 					} catch (e: Exception) {
 						Log.e(TAG, context.getString(R.string.error_upgrade_database))
 						e.printStackTrace()
@@ -211,19 +235,22 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 	 * @property SQLiteDatabase database object.
 	 * @property ObjectClass a object of custom class to manage class data.
 	 */
-	private fun execCreateTable(db: SQLiteDatabase?, entity: ObjectClass) {
+	private fun execCreateTable(db: SQLiteDatabase?, entity: ObjectClass): JSONTable {
 		val jsonTable = JSONTable()
 		val queryBuilder = CreateTableBuilder()
 
-		Log.d(context.getString(R.string.app_name), context.getString(R.string.debug_log_create_table, entity.tableName))
+		var tableName = entity.tableName
+
+        // Debug log
+		Log.d(context.getString(R.string.app_name), context.getString(R.string.debug_log_create_table, tableName))
 
 		/*
  		 * Getting table name.
  		 * If the annotation Table is setted on this model with a table name,
  		 * uses this defined name. Otherwise, it uses the class own name.
 		 */
-		jsonTable.name = entity.tableName
-		queryBuilder.tableName = entity.tableName
+		jsonTable.name = tableName
+		queryBuilder.tableName = tableName
 
 		// Working on model's fields
 		entity.fields.forEach field@{ field ->
@@ -286,23 +313,52 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 
 		// Executing query to create table.
 		val sql = queryBuilder.build()
+        // Debug log
 		Log.d(context.getString(R.string.app_name), sql)
 		db!!.execSQL(sql)
 
-		// Saving model's structure in a JSON file to check changes on future.
-		PreferencesManager.saveTableJson(context, entity.qualifiedName, jsonTable)
+        // Return the table's JSON with the structure of the new table.
+        return jsonTable
 	}
 
 	/**
-	 * Clone a table in database.
+	 * Copy data between tables.
 	 * @property SQLiteDatabase database object.
-	 * @property String name of the table that will be copied.
-	 * @property String name of the new table that will be created.
+	 * @property JSONTable JSON of the old table.
+	 * @property ObjectClass class of the new model's version.
 	 */
-	private fun execCloneTable(db: SQLiteDatabase?, tableName: String, newTableName: String) {
-		val queryBuilder = CloneTableBuilder(tableName, newTableName)
-		db!!.execSQL(queryBuilder.build())
+	private fun execCopyTable(db: SQLiteDatabase?, oldJsonTable: JSONTable, entity: ObjectClass) {
+		val queryBuilder = CopyTableDataBuilder(oldJsonTable.name, entity.tableName)
+
+        // Copy data only from columns that exist in old table
+		oldJsonTable.listJsonColumns().forEach { oldJsonColumn ->
+			queryBuilder.addColumn(oldJsonColumn.name)
+        }
+
+        // Debug log
+        Log.d(context.getString(R.string.app_name),
+                context.getString(R.string.debug_log_copy_table, oldJsonTable.name, entity.tableName))
+        Log.d(context.getString(R.string.app_name), queryBuilder.build())
+
+        db!!.execSQL(queryBuilder.build())
 	}
+
+	/**
+	 * Rename the table.
+	 * @property SQLiteDatabase database object.
+	 * @property String old name.
+	 * @property String new name.
+	 */
+    private fun execRenameTable(db: SQLiteDatabase?, tableName: String, toTableName: String) {
+        val queryBuilder = RenameTableBuilder(tableName, toTableName)
+
+        // Debug log
+        Log.d(context.getString(R.string.app_name),
+                context.getString(R.string.debug_log_rename_table, tableName, toTableName))
+        Log.d(context.getString(R.string.app_name), queryBuilder.build())
+
+        db!!.execSQL(queryBuilder.build())
+    }
 
 	/**
 	 * Delete a table in database.

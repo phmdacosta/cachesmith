@@ -25,5 +25,6 @@ enum class SQLCommands(val value: String) {
 	INNER_JOIN("INNER JOIN"),
 	OUTER_JOIN("OUTER JOIN"),
 	SET("SET"),
-	UPDATE("UPDATE")
+	UPDATE("UPDATE"),
+	RENAME_TO("RENAME TO")
 }
