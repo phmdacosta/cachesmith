@@ -71,9 +71,9 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 				return true
 
 			/*
-			* Check if number of columns changed.
-			* Column dropping are not supported by SQLite.
-			* */
+			 * Check if number of columns changed.
+			 * Column dropping are not supported by SQLite.
+			 */
 			if (jsonTable.columnQuantity < entity.fields.size)
 				return true
 			else if (jsonTable.columnQuantity > entity.fields.size)
@@ -214,7 +214,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 
 						db.setTransactionSuccessful()
 
-						// Saving model's structure in a JSON file to check changes on future.
+						// Saving new model's structure in a JSON file to check changes on future.
 						PreferencesManager.saveTableJson(context, entity.qualifiedName, newJsonTable)
 					} catch (e: Exception) {
 						Log.e(TAG, context.getString(R.string.error_upgrade_database))
@@ -234,6 +234,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 	 * <p>
 	 * @property SQLiteDatabase database object.
 	 * @property ObjectClass a object of custom class to manage class data.
+	 * @return JSON object of the created table.
 	 */
 	private fun execCreateTable(db: SQLiteDatabase?, entity: ObjectClass): JSONTable {
 		val jsonTable = JSONTable()
@@ -242,7 +243,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		var tableName = entity.tableName
 
         // Debug log
-		Log.d(context.getString(R.string.app_name), context.getString(R.string.debug_log_create_table, tableName))
+		Log.d(TAG, context.getString(R.string.debug_log_create_table, tableName))
 
 		/*
  		 * Getting table name.
@@ -252,7 +253,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		jsonTable.name = tableName
 		queryBuilder.tableName = tableName
 
-		// Working on model's fields
+		// Working on model's fields (table's columns)
 		entity.fields.forEach field@{ field ->
 			val columnObj = ColumnObject()
 			val jsonColumn = JSONColumn()
@@ -314,7 +315,7 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 		// Executing query to create table.
 		val sql = queryBuilder.build()
         // Debug log
-		Log.d(context.getString(R.string.app_name), sql)
+		Log.d(TAG, sql)
 		db!!.execSQL(sql)
 
         // Return the table's JSON with the structure of the new table.
@@ -336,9 +337,8 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
         }
 
         // Debug log
-        Log.d(context.getString(R.string.app_name),
-                context.getString(R.string.debug_log_copy_table, oldJsonTable.name, entity.tableName))
-        Log.d(context.getString(R.string.app_name), queryBuilder.build())
+        Log.d(TAG, context.getString(R.string.debug_log_copy_table, oldJsonTable.name, entity.tableName))
+        Log.d(TAG, queryBuilder.build())
 
         db!!.execSQL(queryBuilder.build())
 	}
@@ -353,9 +353,8 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
         val queryBuilder = RenameTableBuilder(tableName, toTableName)
 
         // Debug log
-        Log.d(context.getString(R.string.app_name),
-                context.getString(R.string.debug_log_rename_table, tableName, toTableName))
-        Log.d(context.getString(R.string.app_name), queryBuilder.build())
+        Log.d(TAG, context.getString(R.string.debug_log_rename_table, tableName, toTableName))
+        Log.d(TAG, queryBuilder.build())
 
         db!!.execSQL(queryBuilder.build())
     }
