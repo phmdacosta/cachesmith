@@ -5,7 +5,7 @@ SQLite ORM solution and database's management for Android.
 
 ## Version
 
-v0.1.0-alfa
+v1.0.0-RC
 
 ## Getting started
 
@@ -13,9 +13,38 @@ v0.1.0-alfa
 
 CacheSmith requires at minimum Android API 19+.
 
+The library uses kotlin and it needs some kotlin's dependencies to work.
+
+```
+implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.41"
+implementation "org.jetbrains.kotlin:kotlin-reflect:1.3.41"
+```
+
 ### Installing
 
-Gradle: (how to install)
+From Maven central:
+
+Add the repository url in your project like this:
+
+```
+allprojects {
+    repositories {
+        //...
+        maven {
+            url 'https://dl.bintray.com/phmdacosta/cachesmith'
+        }
+        //...
+    }
+}
+```
+
+In the app module, add the following dependency to implement de library:
+
+```
+implementation 'com.cachesmith:cachesmith:1.0.0-RC'
+```
+
+Other way:
 
 Download AAR file of the last [release](https://github.com/phmdacosta/cachesmith/releases).
 Import this file to libs folder in your Android App module.
@@ -27,6 +56,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.aar'])
 }
 ```
+
+Or from Maven central.
 
 ## How to use
 
