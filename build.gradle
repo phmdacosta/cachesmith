@@ -2,6 +2,7 @@
 
 buildscript {
     ext {
+        // Dependencies versions
         minSdk = 19
         targetSdk = 28
         android_lib_version = '28.0.0'
@@ -25,8 +26,15 @@ allprojects {
         google()
         jcenter()
     }
+
+    tasks.each { task ->
+        if (task.name == "bintrayUpload") {
+            task.dependsOn install
+        }
+    }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+

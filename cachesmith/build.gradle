@@ -1,5 +1,42 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+    }
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+ext {
+    // jCenter config
+    libraryVersion = '1.0.0-RC'
+
+    bintrayRepo = 'cachesmith'
+    bintrayName = 'cachesmith'
+
+    publishedGroupId = 'com.cachesmith'
+    libraryName = 'CacheSmith'
+    artifact = 'cachesmith'
+
+    libraryDescription = 'SQLite ORM solution and database\'s management for Android.'
+
+    siteUrl = 'https://github.com/phmdacosta/cachesmith'
+
+    developerId = 'phmdacosta'
+    developerName = 'Pedro da Costa'
+    developerEmail = 'ph.mcosta@hotmail.com'
+
+    licenseName = 'MIT License'
+    licenseUrl = 'https://github.com/phmdacosta/cachesmith/blob/master/LICENSE'
+    allLicenses = ["MIT"]
+}
 
 android {
     compileSdkVersion targetSdk
@@ -8,7 +45,7 @@ android {
         minSdkVersion minSdk
         targetSdkVersion targetSdk
         versionCode 1
-        versionName "1.0.0-RC"
+        versionName libraryVersion
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -32,6 +69,15 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
+
 repositories {
     mavenCentral()
 }
+
+apply from: 'install-bintray.gradle'
+
+task("publish") {
+    doFirst {
+        println "Publishing ${project.name}"
+    }
+}.dependsOn bintrayUpload
