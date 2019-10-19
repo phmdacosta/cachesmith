@@ -1,7 +1,11 @@
 package com.cachesmith.library.util
 
 enum class RelationType {
-    ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY
+    ONE_TO_ONE, ONE_TO_MANY, MANY_TO_ONE, MANY_TO_MANY;
+
+	override fun toString(): String {
+		return this.name
+	}
 }
 
 enum class ActionType(val value: String) {
@@ -9,7 +13,11 @@ enum class ActionType(val value: String) {
 	RESTRICT("RESTRICT"),
 	SET_NULL("SET NULL"),
 	SET_DEFAULT("SET DEFAULT"),
-	CASCADE("CASCADE")
+	CASCADE("CASCADE");
+
+	override fun toString(): String {
+		return this.value
+	}
 }
 
 enum class DataType(val value: String) {
@@ -40,7 +48,11 @@ enum class DataType(val value: String) {
 	DECIMAL("DECIMAL(10,5)"),
 	BOOLEAN("BOOLEAN"),
 	DATE("DATE"),
-	DATETIME("DATETIME")
+	DATETIME("DATETIME");
+
+	override fun toString(): String {
+		return this.value
+	}
 }
 
 enum class JoinType {

@@ -173,10 +173,10 @@ class JSONColumn() {
 
 	fun addAnnotationJson(jsonAnnot: JSONAnnotation) {
 		annotJsonArray.put(jsonAnnot.toJSONObject())
-		putColumnsJsonArray(annotJsonArray)
+		putAnnotationJsonArray(annotJsonArray)
 	}
 
-	fun putColumnsJsonArray(annotJsonArray: JSONArray) {
+	fun putAnnotationJsonArray(annotJsonArray: JSONArray) {
 		rawJson.put(ANNOTATIONS, annotJsonArray)
 	}
 
@@ -230,6 +230,7 @@ class JSONAnnotation() {
 
 	companion object {
 		const val NAME = "name"
+		const val PROPERTIES = "properties"
 	}
 
 	constructor(json: JSONObject) : this() {
@@ -251,6 +252,30 @@ class JSONAnnotation() {
 		set(value) {
 			rawJson.put(NAME, value)
 		}
+
+	private var propJsonArray = JSONArray()
+
+	fun addProperty(name: String, value: String) {
+		val jsonPro = JSONObject()
+		jsonPro.put(name, value)
+		propJsonArray.put(jsonPro)
+		putPropertiesJsonArray(propJsonArray)
+	}
+
+	fun putPropertiesJsonArray(propJsonArray: JSONArray) {
+		rawJson.put(PROPERTIES, propJsonArray)
+	}
+
+	fun listPropertyJson(): Array<JSONObject> {
+		val listJsonProp = mutableListOf<JSONObject>()
+		if (propJsonArray.length() <= 0)
+			propJsonArray = rawJson.getJSONArray(PROPERTIES)
+
+		for (i in 0 until propJsonArray.length()) {
+			listJsonProp.add(propJsonArray.getJSONObject(i))
+		}
+		return listJsonProp.toTypedArray()
+	}
 
 	fun toJSONObject(): JSONObject {
 		return rawJson

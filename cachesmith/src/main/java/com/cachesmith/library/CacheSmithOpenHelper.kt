@@ -15,6 +15,10 @@ import com.cachesmith.library.util.db.internal.DatabaseUtils
 import com.cachesmith.library.util.db.internal.RenameTableBuilder
 import com.cachesmith.library.util.db.models.ColumnObject
 import java.lang.UnsupportedOperationException
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.memberProperties
 
 internal class CacheSmithOpenHelper private constructor(val context: Context, val name: String, val version: Int, val entities: List<ObjectClass>) :
 		SQLiteOpenHelper(context, name, null, version) {
@@ -66,18 +70,15 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 
 			val jsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
 
+			/*
+			 * Check if there is any change in model that is unsupported by library.
+			 * Some changes that can be made by developer could not be supported by SQLite.
+			 */
+			checkUnsupportedChanges(context, entity, jsonTable)
+
 			// Check table name changed
 			if (entity.tableName != jsonTable.name)
 				return true
-
-			/*
-			 * Check if number of columns changed.
-			 * Column dropping are not supported by SQLite.
-			 */
-			if (jsonTable.columnQuantity < entity.fields.size)
-				return true
-			else if (jsonTable.columnQuantity > entity.fields.size)
-				throw UnsupportedOperationException(context.getString(R.string.error_drop_column_not_supported))
 
 			// Check changes in each field
 			entity.fields.forEach { field ->
@@ -104,14 +105,35 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 						// Check if any bannotation was added or removed.
 						if (annotationsChanged(context, field, jsonCollumn))
 							return true
-
-						// Type changes are not supported by SQLite
-						if (field.type.name != jsonCollumn.type)
-							throw UnsupportedOperationException(context.getString(R.string.error_type_change_not_supported))
 					}
 				}
 			}
 			return false
+		}
+
+		/**
+		 * Check if there is any change in model that is unsupported by library.
+		 *
+		 * @property Context context of the application
+		 * @property ObjectClass a object of custom class to manage class data.
+		 * @property JSONTable JSON object of a table.
+		 * @throws UnsupportedOperationException if a unsupported change was found.
+		 */
+		private fun checkUnsupportedChanges(context: Context, entity: ObjectClass, jsonTable: JSONTable) {
+			/*
+			 * Check if number of columns changed.
+			 * Column dropping are not supported by SQLite.
+			 */
+			if (jsonTable.columnQuantity > entity.fields.size)
+				throw UnsupportedOperationException(context.getString(R.string.error_drop_column_not_supported))
+
+			// Type changes are not supported by SQLite
+			entity.fields.forEach { field ->
+				jsonTable.listJsonColumns().forEach { jsonCollumn ->
+					if (field.type.name != jsonCollumn.type)
+						throw UnsupportedOperationException(context.getString(R.string.error_type_change_not_supported))
+				}
+			}
 		}
 		
 		/**
@@ -198,6 +220,9 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 				} else {
 					val oldJsonTable = PreferencesManager.getTableJson(context, entity.qualifiedName)
 
+					// Some changes that can be made by developer could not be supported by SQLite.
+					checkUnsupportedChanges(context, entity, oldJsonTable)
+
 					db.beginTransaction()
 					try {
 						val oldTableName = oldJsonTable.name.plus(TABLE_SUFFIX)
@@ -274,11 +299,25 @@ internal class CacheSmithOpenHelper private constructor(val context: Context, va
 
 				when(annotation) {
 					is Column -> { // Column annotation
+						// Saving info about annotation
+						jsonAnnotation.addProperty(annotation::name.name, annotation.name)
+						jsonAnnotation.addProperty(annotation::default.name, annotation.name)
+						jsonAnnotation.addProperty(annotation::type.name, annotation.type.value)
+
 						if (annotation.type != DataType.NONE) {
 							columnObj.typeName = annotation.type.value
 						}
 					}
 					is Relationship -> { // Relationship annotation
+						// Saving info about annotation
+						jsonAnnotation.addProperty(annotation::type.name, annotation.type.toString())
+						jsonAnnotation.addProperty(annotation::targetTable.name, annotation.targetTable)
+						jsonAnnotation.addProperty(annotation::targetColumn.name, annotation.targetColumn)
+						jsonAnnotation.addProperty(annotation::targetColumnType.name, annotation.targetColumnType)
+						jsonAnnotation.addProperty(annotation::onUpdate.name, annotation.onUpdate.value)
+						jsonAnnotation.addProperty(annotation::onDelete.name, annotation.onDelete.value)
+						jsonAnnotation.addProperty(annotation::query.name, annotation.query)
+
 						if (!annotation.query.isBlank()) {
 							columnObj.foreignKeyQuery = annotation.query
 						} else {
